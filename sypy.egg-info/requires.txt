@@ -1,0 +1,2 @@
+scipy >= 0.10.1
+networkx >= 1.7
