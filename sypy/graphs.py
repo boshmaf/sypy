@@ -48,6 +48,28 @@ class CustomGraph(BasicGraph):
         self.structure = structure
 
 
+class ZacharyKarateClubGraph(BasicGraph):
+    """
+    Generates Zachary's Karate club graph as described in An information Flow 
+    Model for Conflict and Fission in Small Groups, Zachary et al., J. Anthro. 
+    Research, 33, 452-473, 1977.
+    """
+    def __init__(self):
+        BasicGraph.__init__(self)
+        self.structure = nx.karate_club_graph()
+
+
+class FlorentineFamiliesGraph(BasicGraph):
+    """
+    Generates the Florentine Families graph as described in Cumulated Social 
+    Roles: The Duality of Persons and their Algebras, Breiger et al., Social 
+    Networks, Vol 8(3), 215-256, 1986.
+    """ 
+    def __init__(self):
+        BasicGraph.__init__(self)
+        self.structure = nx.florentine_families_graph()
+
+
 class CompleteGraph(BasicGraph):
 
     def __init__(self, num_nodes):
