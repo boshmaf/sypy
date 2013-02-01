@@ -53,6 +53,8 @@ class ZacharyKarateClubGraph(BasicGraph):
     Generates Zachary's Karate club graph as described in An information Flow 
     Model for Conflict and Fission in Small Groups, Zachary et al., J. Anthro. 
     Research, 33, 452-473, 1977.
+    In this graph, the players are clusted into two clubs after some dispute,
+    which can be tested using the 'club' node attribute.
     """
     def __init__(self):
         BasicGraph.__init__(self)
