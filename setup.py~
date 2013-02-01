@@ -26,8 +26,7 @@ setup(
     packages=["sypy", "sypy.tests"],
     url="https://github.com/boshmaf/sypy",
     license='LICENSE.txt',
-    description="Graph-based Sybil detection in social and "\
-        "information networks",
+    description="Graph-based Sybil detection in social and info networks",
     long_description=open('README.txt').read(),
     install_requires=[
         "scipy >= 0.10.1",
