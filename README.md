@@ -64,7 +64,7 @@ After the network is updated, we can run any of the supported [graph-based Sybil
         results.specificity()
     )
 
-How easy it is to extend?
+# How extensible is it?
 
 SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can support most of Networkx functionality (e.g., plotting), which also means it is easily extensible. For example, you can visualize any region or network as follows:
 
@@ -74,8 +74,7 @@ SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can 
     network.visualize()
     network.visualize(file_path="/tmp/{0}".format(network.name))
 
-Installation
-============
+# How to install it?
 
 You can install the latest release of SyPy by issuing the following command:
 
@@ -83,7 +82,8 @@ You can install the latest release of SyPy by issuing the following command:
 
 You can also find the EGG file at PyPI website [here](http://pypi.python.org/pypi/sypy).
 
-Contributors
-============
+# How is working on it?
 
-Yazan Boshmaf (UBC), Tony Cheng (UBC)
+SyPy started as a research project at the [University of British Columbia](http://www.ece.ubc.ca/) (UBC) by [Yazan Boshmaf](http://ece.ubc.ca/~boshmaf). Latere on, the following people contributed in one way or the other:
+
+* Tony Cheng (UBC) -- Region and network visualization, community detection algorithms.
