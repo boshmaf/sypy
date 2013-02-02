@@ -32,25 +32,25 @@
       <section>
         <h1>What is SyPy?</h1>
 
-<p>SyPy is an easy-to-use Python package for Sybil node detection in social and information networks. Such networks are modelled as graphs, where a node represents an entity and an edge between two nodes represents a connection. For example, in online social networks such as Facebook, nodes represent users and edges represent social relationships like friendships.</p>
+<p>SyPy is an easy-to-use Python package for <a href="http://dl.acm.org/citation.cfm?id=687813">Sybil node</a> detection in social and information networks. Such networks are modelled as <a href="http://en.wikipedia.org/wiki/Graph_(mathematics)">graphs</a>, where a node represents an entity and an edge between two nodes represents a connection. For example, in online social networks such as Facebook, nodes represent users and edges represent social relationships like friendships.</p>
 
-<p>In the Sybil attack, an adversary controls a set of nodes in the network and uses them for adversarial objectives. For example, socialbots in online social networks are automation tools that control hijacked or adversary-owned user accounts, which are adversely used to infiltrate these networks, steal user data, spread misinformation, or distribute malware.</p>
+<p>In the Sybil attack, an adversary controls a set of nodes in the network and uses them for adversarial objectives. For example, <a href="http://lersse-dl.ece.ubc.ca/record/277">socialbots</a> in online social networks are automation tools that control hijacked or adversary-owned user accounts, which are adversely used to infiltrate these networks, steal user data, spread misinformation, or distribute malware.</p>
 
-<p>SyPy specializes in evaluating graph-based Sybil node detection algorithms. In these algorithms, there are three main assumptions about the network:</p>
+<p>SyPy specializes in evaluating graph-based Sybil node detection algorithms. In these algorithms, there are three main <a href="http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6151333">assumptions</a> about the network:</p>
 
 <ol>
 <li>The defender knows at least one honest (i.e., non-Sybil) node.</li>
-<li>The network structure (i.e., its graph) has two regions (sub-graphs): the honest region consisting of honest nodes, and the Sybil region consisting of Sybil nodes. These two regions represent disjoint communities or clusters, meaning they are "loosely connected" together as compared to their own proportionally more connected structures.</li>
-<li>The honest region is fast mixing, meaning it is "well connected."</li>
-</ol><p>Given that all of the assumptions above hold, most of the well-known detection algorithms try in one way or the other to cut the network into two partitions such that the cut size is small or sparse. After that, the partition to which the known honest node belongs is declared as the honest region (and the other as Sybil).</p>
+<li>The network structure (i.e., its graph) has two regions (sub-graphs): the honest region consisting of honest nodes, and the Sybil region consisting of Sybil nodes. These two regions represent disjoint <a href="http://www.sciencedirect.com/science/article/pii/S0370157309002841">communities</a> or <a href="http://www.sciencedirect.com/science/article/pii/S1574013707000020">clusters</a>, meaning they are "loosely connected" together as compared to their own proportionally more connected structures.</li>
+<li>The honest region is <a href="http://dl.acm.org/citation.cfm?id=1879191">fast mixing</a>, meaning it is "well connected."</li>
+</ol><p>Given that all of the assumptions above hold, most of the well-known detection algorithms try in one way or the other to cut the network into two <a href="http://en.wikipedia.org/wiki/Graph_partition">partitions</a> such that the cut size is small or sparse. After that, the partition to which the known honest node belongs is declared as the honest region (and the other as Sybil).</p>
 
 <h1>How does it work?</h1>
 
-<p>There are four main concepts: graphs, regions, networks, and detection algorithms.</p>
+<p>SyPy offers a framework that enables algorithm design, implementation, and evaluation. Overlall, there are four main concepts: graphs, regions, networks, and detection algorithms.</p>
 
 <h2>Graphs and Regions</h2>
 
-<p>A region is either Sybil or honest, and it has a specific graph structure. For example, you can create a Sybil region of 100 nodes that are fully-connected (i.e., a complete graph) as follows:</p>
+<p>A region is either Sybil or honest, and it has a specific graph structure. For example, you can create a Sybil region of 100 nodes that are fully-connected (i.e., a <a href="http://en.wikipedia.org/wiki/Complete_graph">complete graph</a>) as follows:</p>
 
 <pre><code>import sypy
 
@@ -61,7 +61,7 @@ sybil_region = sypy.Region(
 )
 </code></pre>
 
-<p>SyPy supports many random graph models such as scale-free and small-world graphs or network structures. For example, you can create an honest region that represents a real-world social network consisting of 5000 users, and then pick 10 random nodes to be known honest nodes as follows:</p>
+<p>SyPy supports many <a href="http://en.wikipedia.org/wiki/Random_graph">random graph</a> models such as <a href="http://en.wikipedia.org/wiki/Scale-free_network">scale-free</a> and <a href="http://en.wikipedia.org/wiki/Small_world_network">small-world</a> graphs or network structures. For example, you can create an honest region that represents a real-world social network consisting of 5000 users, and then pick 10 random nodes to be known honest nodes as follows:</p>
 
 <pre><code>honest_region = sypy.Region(
     graph=sypy.SmallWorldGraph(
@@ -88,7 +88,7 @@ social_network.random_pair_stitch(num_edges=2)
 
 <h2>Detectors</h2>
 
-<p>After the network is updated, we can run any of the supported graph-based Sybil detection algorithms and compute their detection performance. For example, we can use SybilGuard, one of the first graph-based Sybil detection algorithms with provable guarantees, as follows:</p>
+<p>After the network is updated, we can run any of the supported <a href="http://dl.acm.org/citation.cfm?doid=2034575.2034593">graph-based Sybil detection algorithms</a> and compute their detection performance. For example, we can use <a href="http://dl.acm.org/citation.cfm?id=1159945">SybilGuard</a>, one of the first graph-based Sybil detection algorithms with provable guarantees, as follows:</p>
 
 <pre><code>detector = sypy.SybilGuardDetector(social_network)
 results = detector.detect()
@@ -100,7 +100,9 @@ print "accuracy={0:.2f}, sensitivity={1:.2f}, specificity={2:.2f}".format(
 )
 </code></pre>
 
-<p>Finally, SyPy is built on top of Networkx, and hence it can support most of Networkx functionality (e.g., plotting), which also means it is easily extensible. For example, you can visualize any region or network as follows:</p>
+<h1>How extensible is it?</h1>
+
+<p>SyPy is built on top of <a href="http://networkx.lanl.gov/">NetworkX</a>, and hence it can support most of Networkx functionality (e.g., plotting), which also means it is easily extensible. For example, you can visualize any region or network as follows:</p>
 
 <pre><code>sybil_region.visualize()
 sybil_region.visualize(file_path="/tmp/{0}".format(sybil_region.name))
@@ -109,18 +111,22 @@ network.visualize()
 network.visualize(file_path="/tmp/{0}".format(network.name))
 </code></pre>
 
-<h1>Installation</h1>
+<h1>How to install it?</h1>
 
 <p>You can install the latest release of SyPy by issuing the following command:</p>
 
 <pre><code>easy_install sypy
 </code></pre>
 
-<p>You can also find the EGG file at PyPI website here: <a href="http://pypi.python.org/pypi/sypy">http://pypi.python.org/pypi/sypy</a></p>
+<p>You can also find the EGG file at PyPI website <a href="http://pypi.python.org/pypi/sypy">here</a>.</p>
 
-<h1>Contributors</h1>
+<h1>Who is working on it?</h1>
 
-<p>Yazan Boshmaf (UBC), Tony Cheng (UBC)</p>
+<p>SyPy started as a research project at the <a href="http://www.ece.ubc.ca/">University of British Columbia</a> (UBC) by <a href="http://ece.ubc.ca/%7Eboshmaf">Yazan Boshmaf</a>. Latere on, the following people contributed in one way or the other:</p>
+
+<ul>
+<li>Tony Cheng (UBC) -- Region and network visualization, community detection algorithms.</li>
+</ul>
       </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
