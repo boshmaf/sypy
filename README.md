@@ -12,7 +12,7 @@ You can easily install the latest release of SyPy by issuing the following comma
 
     easy_install sypy
 
-You can also find the EGG file at PyPI webiste here: http://pypi.python.org/pypi/sypy
+You can also find the EGG file at PyPI website here: http://pypi.python.org/pypi/sypy
 
 Contributors
 ============
