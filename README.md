@@ -82,7 +82,7 @@ You can install the latest release of SyPy by issuing the following command:
 
 You can also find the EGG file at PyPI website [here](http://pypi.python.org/pypi/sypy).
 
-# How is working on it?
+# Who is working on it?
 
 SyPy started as a research project at the [University of British Columbia](http://www.ece.ubc.ca/) (UBC) by [Yazan Boshmaf](http://ece.ubc.ca/~boshmaf). Latere on, the following people contributed in one way or the other:
 
