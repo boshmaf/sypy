@@ -66,7 +66,7 @@ After the network is updated, we can run any of the supported [graph-based Sybil
 
 # How extensible is it?
 
-SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can support most of Networkx functionality, which also means it is easily extensible. For example, you can visualize any region or network as follows:
+SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can support most of NetworkX functionality, which also means it is easily extensible. For example, you can visualize any region or network as follows:
 
     sybil_region.visualize()
     sybil_region.visualize(file_path="/tmp/{0}".format(sybil_region.name))
