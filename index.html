@@ -76,7 +76,7 @@ honest_region.pick_random_honest_nodes(num_nodes=10)
 
 <h2>Networks</h2>
 
-<p>A network always consists of two regions: the honest region positioed to the left, and the Sybil region positioned to the right. The regions can have any graph structure, and initially, they are regions are disconnected. We can "stitch" the two regions together in many ways that resemble how Sybils connect with honest nodes in real-world networks (i.e., using a random or targeted adversarial infiltration strategy). For example, using the regions defined above, we can create a network and can connect one randomly-picked pair, one node from both region, as follows:</p>
+<p>A network always consists of two regions: the honest region positioned to the left, and the Sybil region positioned to the right. The regions can have any graph structure, and initially, they are disconnected. We can "stitch" the two regions together in many ways that resemble how Sybils connect with honest nodes in real-world networks (i.e., using a random or targeted adversarial infiltration strategy). For example, using the regions defined above, we can create a network and connect ten randomly-picked pair, one node from both region, as follows:</p>
 
 <pre><code>social_network = sypy.Network(
         left_region=honest_region,
@@ -102,7 +102,7 @@ print "accuracy={0:.2f}, sensitivity={1:.2f}, specificity={2:.2f}".format(
 
 <h1>How extensible is it?</h1>
 
-<p>SyPy is built on top of <a href="http://networkx.lanl.gov/">NetworkX</a>, and hence it can support most of Networkx functionality (e.g., plotting), which also means it is easily extensible. For example, you can visualize any region or network as follows:</p>
+<p>SyPy is built on top of <a href="http://networkx.lanl.gov/">NetworkX</a>, and hence it can support most of Networkx functionality, which also means it is easily extensible. For example, you can visualize any region or network as follows:</p>
 
 <pre><code>sybil_region.visualize()
 sybil_region.visualize(file_path="/tmp/{0}".format(sybil_region.name))
