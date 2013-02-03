@@ -42,7 +42,7 @@ SyPy supports many [random graph](http://en.wikipedia.org/wiki/Random_graph) mod
 
 ## Networks
 
-With the regions defined, we can now define a network which always consists of two regions: honest, left region and Sybil, right region (the above two regions). Initially, these two regions are disconnected. We can "stitch" the two regions together in many ways that resemble how Sybils connect to honest nodes in real-world networks. For example, we can connect one randomly-picked pair, one node from both region, as follows:
+A network always consists of two regions: the honest region positioed to the left, and the Sybil region positioned to the right. The regions can have any graph structure, and initially, they are regions are disconnected. We can "stitch" the two regions together in many ways that resemble how Sybils connect with honest nodes in real-world networks (i.e., using a random or targeted adversarial infiltration strategy). For example, using the regions defined above, we can create a network and can connect one randomly-picked pair, one node from both region, as follows:
 
     social_network = sypy.Network(
         left_region=honest_region,
