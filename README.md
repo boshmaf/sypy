@@ -76,11 +76,7 @@ SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can 
 
 # How to install it?
 
-You can install the latest release of SyPy by issuing the following command:
-
-    easy_install sypy
-
-You can also find the EGG file at PyPI website [here](http://pypi.python.org/pypi/sypy).
+You can install the latest release of SyPy by issuing either <code>easy_install sypy</code> or <code>pip install sypy</code> (recommended). You can also find the EGG file at PyPI website [here](http://pypi.python.org/pypi/sypy).
 
 # Who is working on it?
 
