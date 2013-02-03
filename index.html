@@ -46,7 +46,7 @@
 
 <h1>How does it work?</h1>
 
-<p>SyPy offers a framework that enables the design, implementation, and evaluation of graph-based Sybil node detection algorithms. Overall, there are four main concepts: graphs, regions, networks, and detection algorithms.</p>
+<p>SyPy offers a framework that enables algorithm design, implementation, and evaluation. Overlall, there are four main concepts: graphs, regions, networks, and detection algorithms.</p>
 
 <h2>Graphs and Regions</h2>
 
@@ -79,10 +79,10 @@ honest_region.pick_random_honest_nodes(num_nodes=10)
 <p>With the regions defined, we can now define a network which always consists of two regions: honest, left region and Sybil, right region (the above two regions). Initially, these two regions are disconnected. We can "stitch" the two regions together in many ways that resemble how Sybils connect to honest nodes in real-world networks. For example, we can connect one randomly-picked pair, one node from both region, as follows:</p>
 
 <pre><code>social_network = sypy.Network(
-    left_region=honest_region,
-    right_region=sybil_region,
-    name="OnlineSocialNetwork"
-)
+        left_region=honest_region,
+        right_region=sybil_region,
+        name="OnlineSocialNetwork"
+    )
 social_network.random_pair_stitch(num_edges=2)
 </code></pre>
 
@@ -137,6 +137,16 @@ social_network.visualize(file_path="/tmp/{0}".format(network.name))
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-38193542-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
   </body>
 </html>
