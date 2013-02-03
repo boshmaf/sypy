@@ -14,7 +14,7 @@ Given that all of the assumptions above hold, most of the well-known detection a
 
 # How does it work?
 
-SyPy offers a framework that enables the design, implementation, and evaluation of graph-based Sybil node detection algorithms. Overall, there are four main concepts: graphs, regions, networks, and detection algorithms.
+SyPy provides a simple framework to design, implement, and evaluate graph-based Sybil detection algorithms. Overall, there are four main abstractions: graphs, regions, networks, and detection algorithms.
 
 ## Graphs and Regions
 
