@@ -4,7 +4,7 @@ SyPy is an easy-to-use Python package for [Sybil node](http://dl.acm.org/citatio
 
 In the Sybil attack, an adversary controls a set of nodes in the network and uses them for adversarial objectives. For example, [socialbots](http://lersse-dl.ece.ubc.ca/record/277) in online social networks are automation tools that control hijacked or adversary-owned user accounts, which are adversely used to infiltrate these networks, steal user data, spread misinformation, or distribute malware.
 
-SyPy specializes in evaluating graph-based Sybil node detection algorithms. In these algorithms, there are three main [assumptions](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6151333) about the network:
+SyPy specializes in evaluating the [effectiveness](http://en.wikipedia.org/wiki/Binary_classification) of graph-based Sybil node detection algorithms on a reasonable scale (i.e., networks consisting of thousands of nodes). It is not designed to benchmark the effeciency of these algorithms on a large scale, which is a rather interesting but orthogonal topic. When detecting Sybils using graphs, there are three [assumptions](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6151333) made about the network:
 
 1. The defender knows at least one honest (i.e., non-Sybil) node.
 2. The network structure (i.e., its graph) has two regions (sub-graphs): the honest region consisting of honest nodes, and the Sybil region consisting of Sybil nodes. These two regions represent disjoint [communities](http://www.sciencedirect.com/science/article/pii/S0370157309002841) or [clusters](http://www.sciencedirect.com/science/article/pii/S1574013707000020), meaning they are "loosely connected" together as compared to their own proportionally more connected structures.
@@ -77,6 +77,8 @@ SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can 
 # How to install it?
 
 You can install the latest release of SyPy by issuing either <code>easy_install sypy</code> or <code>pip install sypy</code> (recommended). You can also find the EGG file at PyPI website [here](http://pypi.python.org/pypi/sypy).
+
+SyPy has been tested on a full installation of Ubuntu 12.10.
 
 # Who is working on it?
 
