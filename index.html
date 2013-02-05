@@ -36,7 +36,7 @@
 
 <p>In the Sybil attack, an adversary controls a set of nodes in the network and uses them for adversarial objectives. For example, <a href="http://lersse-dl.ece.ubc.ca/record/277">socialbots</a> in online social networks are automation tools that control hijacked or adversary-owned user accounts, which are adversely used to infiltrate these networks, steal user data, spread misinformation, or distribute malware.</p>
 
-<p>SyPy specializes in evaluating graph-based Sybil node detection algorithms. In these algorithms, there are three main <a href="http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6151333">assumptions</a> about the network:</p>
+<p>SyPy specializes in evaluating the <a href="http://en.wikipedia.org/wiki/Binary_classification">effectiveness</a> of graph-based Sybil node detection algorithms on a reasonable scale (i.e., networks consisting of thousands of nodes). It is not designed to benchmark the effeciency of these algorithms on a large scale, which is a rather interesting but orthogonal topic. When detecting Sybils using graphs, there are three <a href="http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6151333">assumptions</a> made about the network:</p>
 
 <ol>
 <li>The defender knows at least one honest (i.e., non-Sybil) node.</li>
@@ -118,6 +118,8 @@ social_network.visualize(file_path="/tmp/{0}".format(network.name))
 <h1>How to install it?</h1>
 
 <p>You can install the latest release of SyPy by issuing either <code>easy_install sypy</code> or <code>pip install sypy</code> (recommended). You can also find the EGG file at PyPI website <a href="http://pypi.python.org/pypi/sypy">here</a>.</p>
+
+<p>SyPy has been tested on a full installation of Ubuntu 12.10.</p>
 
 <h1>Who is working on it?</h1>
 
