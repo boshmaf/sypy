@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ import networkx as nx
 import random
 
 
-class BasicGraph:
+class BaseGraph:
 
     def __init__(self):
         self.structure = nx.Graph()
@@ -40,50 +40,80 @@ class BasicGraph:
     def size(self, weight=None):
         return self.structure.size(weight)
 
+    def export_to_gexf_file(self, file_path, compressed=True):
+        if compressed:
+            file_path = "{0}.{1}".format(file_path, "gz")
 
-class CustomGraph(BasicGraph):
+        nx.write_gexf(self.structure, file_path)
+
+
+class CustomGraph(BaseGraph):
 
     def __init__(self, structure):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.structure = structure
 
 
-class ZacharyKarateClubGraph(BasicGraph):
+class ImportedGEXFGraph(BaseGraph):
     """
-    Generates Zachary's Karate club graph as described in An information Flow 
-    Model for Conflict and Fission in Small Groups, Zachary et al., J. Anthro. 
+    Generates a graph from an existing dataset in the standard Graph
+    Extensible XML Format (GEXF). The GEXF format defines an XML schema
+    for describing complex networks structures, their associated data,
+    and dynamics.
+    """
+    def __init__(self, file_path):
+        BaseGraph.__init__(self)
+        self.file_path = file_path
+        self.__import_from_gexf_file()
+        self.__filter()
+
+    def import_from_gexf_file(self):
+        imported_graph = nx.read_gexf(self.file_path)
+        if not isinstance(imported_graph, nx.Graph):
+            raise Exception("Imported graph is not undirected")
+
+        self.structure = nx.convert_node_labels_to_integers(imported_graph)
+
+    def __filter(self):
+        print "Post-import filtering goes here."
+
+
+class ZacharyKarateClubGraph(BaseGraph):
+    """
+    Generates Zachary's Karate club graph as described in An information Flow
+    Model for Conflict and Fission in Small Groups, Zachary et al., J. Anthro.
     Research, 33, 452-473, 1977.
     In this graph, the players are clusted into two clubs after some dispute,
     which can be tested using the 'club' node attribute.
     """
     def __init__(self):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.structure = nx.karate_club_graph()
 
 
-class FlorentineFamiliesGraph(BasicGraph):
+class FlorentineFamiliesGraph(BaseGraph):
     """
-    Generates the Florentine Families graph as described in Cumulated Social 
-    Roles: The Duality of Persons and their Algebras, Breiger et al., Social 
+    Generates the Florentine Families graph as described in Cumulated Social
+    Roles: The Duality of Persons and their Algebras, Breiger et al., Social
     Networks, Vol 8(3), 215-256, 1986.
-    """ 
+    """
     def __init__(self):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.structure = nx.florentine_families_graph()
 
 
-class CompleteGraph(BasicGraph):
+class CompleteGraph(BaseGraph):
 
     def __init__(self, num_nodes):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.num_nodes = num_nodes
         self.structure = nx.complete_graph(self.num_nodes)
 
 
-class SmallWorldGraph(BasicGraph):
+class SmallWorldGraph(BaseGraph):
 
     def __init__(self, num_nodes, node_degree, rewire_prob, tries=100, seed=None):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.num_nodes = num_nodes
         self.node_degree = node_degree
         self.rewire_prob = rewire_prob
@@ -98,7 +128,7 @@ class SmallWorldGraph(BasicGraph):
         )
 
 
-class PowerLawGraph(BasicGraph):
+class PowerLawGraph(BaseGraph):
 
     def __init__(self, num_nodes, node_degree, prob_triad, seed=None):
         self.num_nodes = num_nodes
@@ -137,7 +167,7 @@ class PowerLawGraph(BasicGraph):
                 self.structure.add_edge(left_node, right_node)
 
 
-class GirvanNewmanCommunityGraph(BasicGraph):
+class GirvanNewmanCommunityGraph(BaseGraph):
     """
     Grenerates a Grivan-Newman random graph with configurable community
     structure. The implementation is adapted from Community Structure in
@@ -153,7 +183,7 @@ class GirvanNewmanCommunityGraph(BasicGraph):
     well-defined community structure.
     """
     def __init__(self, num_comm=4, comm_size=32, avg_intercomm=1, seed=None):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.num_comm = num_comm
         self.comm_size = comm_size
         self.avg_intercomm = avg_intercomm
@@ -193,7 +223,7 @@ class GirvanNewmanCommunityGraph(BasicGraph):
                             )
 
 
-class LFRCommunityGraph(BasicGraph):
+class LFRCommunityGraph(BaseGraph):
     """
     Generates LFR-Benchmark random graph with overlapping community structure
     as described in Benchmark Graphs for Testing Community Detection Algorithms,
@@ -205,7 +235,7 @@ class LFRCommunityGraph(BasicGraph):
     def __init__(self, num_comm=4, max_comm=100, comm_exp=1.5, max_degree=10,
         degree_exp=1.5, mixing_par=0.075, tries=3, seed=None
     ):
-        BasicGraph.__init__(self)
+        BaseGraph.__init__(self)
         self.num_comm = num_comm
         self.max_comm = max_comm
         self.comm_exp = comm_exp

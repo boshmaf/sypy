@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -24,13 +24,13 @@ setup(
     author="Yazan Boshmaf",
     author_email="boshmaf@ece.ubc.ca",
     packages=["sypy", "sypy.tests"],
-    url="https://github.com/boshmaf/sypy",
+    url="http://boshmaf.github.com/sypy",
     license='LICENSE.txt',
-    description="Graph-based Sybil detection in social and "\
-        "information networks",
-    long_description=open('README.txt').read(),
+    description="Graph-based Sybil detection.",
+    long_description=open('README.md').read(),
     install_requires=[
         "scipy >= 0.10.1",
         "networkx >= 1.7",
+        "numpy >= 1.6.2"
     ],
 )

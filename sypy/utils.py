@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,10 @@ import graphs as sypy_graphs
 import networkx as nx
 import numpy as np
 import math
+import pprint
+
+from scipy import stats
+
 
 def compute_mixing_time_bounds(graph, variation_distance=None,
     variation_distance_scaler=1.0
@@ -31,7 +35,7 @@ def compute_mixing_time_bounds(graph, variation_distance=None,
     and calculates the bounds as described in Measuring the Mixing Time of
     Social Graphs, Mohaisen et al., IMC'10 (2010).
     """
-    if not isinstance(graph, sypy_graphs.BasicGraph):
+    if not isinstance(graph, sypy_graphs.BaseGraph):
         raise Exception("Invalid graph")
 
     if not variation_distance:
@@ -65,3 +69,53 @@ def compute_mixing_time_bounds(graph, variation_distance=None,
         (math.log10(1.0 / (float)(2.0 * variation_distance)))
 
     return (lower_bound, upper_bound)
+
+
+def compute_graph_stats(graph, to_stdout=False):
+    """
+    Returns networks statistics about basic info, connected components,
+    clustering, and eccentricity. If to_stdout is set, then it also
+    dumps the stats to std output in a pretty format.
+    """
+    if not isinstance(graph, sypy_graphs.BaseGraph):
+        raise Exception("Invalid graph")
+
+    cc = nx.connected_components(graph.structure)
+    cc_lengths = []
+    for component in cc:
+        cc_lengths.append(len(component))
+    lcc = max(cc, key=len)
+
+    eccentricity = nx.eccentricity(graph.structure)
+    eccent_vals = eccentricity.values()
+
+    graph_stats = {
+        "basic": {
+            "num_nodes": graph.structure.order(),
+            "num_edges": graph.structure.size()
+        },
+        "connected_components": {
+            "num_cc": len(cc),
+            "50_percentile": stats.scoreatpercentile(cc_lengths, 50),
+            "90_percentile": stats.scoreatpercentile(cc_lengths, 90),
+            "nodes_lcc": len(lcc),
+            "edges_lwcc": len(graph.structure.edges(lcc)),
+        },
+        "clustering": {
+            "average_cluster": nx.average_clustering(graph.structure),
+            "transitivity": nx.transitivity(graph.structure),
+        },
+        "eccentricity": {
+            "diamter": max(eccent_vals),
+            "radius": min(eccent_vals),
+            "50_percentile": stats.scoreatpercentile(eccent_vals, 50),
+            "90_percentile": stats.scoreatpercentile(eccent_vals, 90)
+        }
+    }
+
+    if to_stdout:
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(graph_stats)
+
+    return graph_stats
+
