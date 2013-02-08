@@ -16,49 +16,94 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import networkx as nx
-
+import numpy as np
+import math
 
 class GraphStats():
 
-    def __init__(self, graph, per_comp):
+    def __init__(self, graph):
         self.graph = graph
-        self.per_comp = per_comp
 
         self.order = self.graph.order()
         self.size = self.graph.size()
-        self.cc_stats = self.__compute_cc_stats()
 
-    def __compute_cc_stats(self):
+        self.cc = nx.connected_components(self.graph.structure)
+        self.num_cc = len(self.cc)
+
+        self.lcc = max(self.cc, key=len)
+        self.lcc_order = len(self.lcc)
+        self.lcc_size = len(
+            self.graph.structure.edges(self.lcc)
+        )
+
+        self.scc = min(self.cc, key=len)
+        self.scc_order = len(self.scc)
+        self.scc_size = len(
+            self.graph.structure.edges(self.scc)
+        )
+
+    def compute_mixing_time_bounds(self, variation_distance=None,
+            variation_distance_scaler=1.0, lcc_only=False):
+        """
+        Returns the upper and the lower bounds for the mixing time of the
+        graph parameterized by its variation distance. The approach computes
+        the Second Largest Eigenvalue Modulus (SLEM) of the graph's transition
+        matrix and calculates the bounds as described in Measuring the Mixing
+        Time of Social Graphs, Mohaisen et al., IMC'10 (2010).
+        """
+        structure = self.graph.structure
+        if self.num_cc != 1:
+            if lcc_only:
+                structure = self.graph.structure.subgraph(self.lcc)
+            else:
+                raise Exception("Graph is disconnected")
+
+        if not variation_distance:
+            variation_distance = variation_distance_scaler /\
+                (float)(math.log10(structure.order()))
+
+        if variation_distance < 0.0 or variation_distance > 1.0:
+            raise Exception("Invalid variation distance value")
+
+        adj_matrix = nx.to_numpy_matrix(structure)
+        matrix_dim = adj_matrix.shape
+
+        trans_matrix = np.empty(matrix_dim)
+        for row in xrange(matrix_dim[0]):
+            for col in xrange(matrix_dim[1]):
+                node_degree = adj_matrix[row].sum()
+                if node_degree == 0:
+                     raise Exception("The graph has disconnected components")
+                if adj_matrix[row, col] == 0.0:
+                     trans_matrix[row, col] = 0.0
+                else:
+                    trans_matrix[row,col] = 1/node_degree
+
+        eigen_vals = np.linalg.eig(trans_matrix)[0]
+        second_largest = math.fabs(np.sort(eigen_vals)[-2])
+
+        upper_bound = (math.log10(structure.order()) +\
+            math.log10(1.0/(float)(variation_distance))) /\
+                (float)(1.0 - second_largest)
+
+        lower_bound = second_largest / (float)(2.0 * (1.0 - second_largest)) *\
+                (math.log10(1.0 / (float)(2.0 * variation_distance)))
+
+        return (lower_bound, upper_bound)
+
+    def compute_cc_stats(self):
+        """
+        Returns basic statistics about the connected components of the
+        graph. This includes their number, order, size, diameter, radius,
+        average clusttering coefficient, transitivity, in addition to basic
+        info about the largest and smallest connected components.
+        """
         cc_stats = {}
 
-        cc = nx.connected_components(self.graph.structure)
-        cc_stats["num_cc"] = len(cc)
-
-        lcc = max(cc, key=len)
-        cc_stats["lcc_order"] = len(lcc)
-        cc_stats["lcc_size"] = len(
-            self.graph.structure.edges(lcc)
-        )
-
-        scc = min(cc, key=len)
-        cc_stats["scc_order"] = len(scc)
-        cc_stats["scc_size"] = len(
-            self.graph.structure.edges(scc)
-        )
-
-        if self.per_comp:
-            cc_stats["components"] = self.__compute_per_cc_stats(cc)
-
-        return cc_stats
-
-    def __compute_per_cc_stats(self, cc):
-        cc_info = {}
-
-        for index, component in enumerate(cc):
-            cc_info[index] = {}
-            this_cc = cc_info[index]
+        for index, component in enumerate(self.cc):
+            cc_stats[index] = {}
+            this_cc = cc_stats[index]
 
             this_cc["order"] = len(component)
             this_cc["size"] = len(
@@ -74,4 +119,4 @@ class GraphStats():
             this_cc["diameter"] = max(ecc_values)
             this_cc["radius"] = min(ecc_values)
 
-        return cc_info
+        return cc_stats

@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ import math
 import copy
 
 from results import *
-
+from stats import *
 
 class BaseDetector:
 
@@ -290,8 +290,7 @@ class SybilLimitDetector(BaseSybilDetector):
     Yu et al., IEEE S&P (2008).
     """
     def __init__(self, network, verifiers=None, route_len_scaler=1.0,
-        num_instances_scaler=1.0, tail_balance_scalar=4.0, seed=None
-    ):
+            num_instances_scaler=1.0, tail_balance_scalar=4.0, seed=None):
         BaseSybilDetector.__init__(self, network, verifiers, seed)
 
         self.route_len_scaler = route_len_scaler
@@ -304,9 +303,9 @@ class SybilLimitDetector(BaseSybilDetector):
             self.num_instances_scaler * math.sqrt(num_edges)
         )
 
-        (lower_mtime, upper_mtime) = utils.compute_mixing_time_bounds(
-            self.network.left_region.graph
-        )
+        stats = GraphStats(self.network.left_region.graph)
+
+        (lower_mtime, upper_mtime) = stats.compute_mixing_time_bounds()
         route_len = int(
             self.route_len_scaler * math.ceil(upper_mtime)
         )
@@ -396,8 +395,7 @@ class SybilLimitDetector(BaseSybilDetector):
         return tails
 
     def __accept_honests_from_verifiers(self, suspects_tails, verifiers_tails,
-        num_instances
-    ):
+            num_instances):
         verified_honests = []
         for verifier in verifiers_tails:
             verifier_honests = []
@@ -429,8 +427,7 @@ class SybilLimitDetector(BaseSybilDetector):
         return overlap
 
     def __update_tail_counters(self, verifier_tails, tail_counters,
-        overlap, num_instances
-    ):
+            overlap, num_instances):
         accepted = False
         if not overlap:
             return (accepted, tail_counters)

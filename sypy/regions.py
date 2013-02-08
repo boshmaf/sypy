@@ -32,9 +32,6 @@ class Region:
         self.is_sybil = is_sybil
         self.known_honests = None
 
-    def get_region_stats(self, per_comp=False):
-        return GraphStats(self.graph, per_comp)
-
     def pick_random_honest_nodes(self, num_nodes=1, seed=None):
         if self.is_sybil:
             raise Exception("Cannot pick honest nodes in a Sybil region")

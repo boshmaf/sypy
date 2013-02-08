@@ -24,7 +24,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import random
 
-
 class Network:
 
     def __init__(self, left_region, right_region, name):
@@ -37,13 +36,6 @@ class Network:
         self.known_honests = []
         self.is_stitched = False
         self.attack_edges = []
-
-    def get_network_stats(self, per_comp=False):
-        if not self.is_stitched:
-            raise Exception("Network is not stitched")
-
-        return GraphStats(self.graph, per_comp)
-
 
     def __check_integrity(self):
         if self.left_region.is_sybil == self.right_region.is_sybil:
