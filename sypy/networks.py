@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 
 from graphs import *
 from results import *
+from stats import *
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -36,6 +37,13 @@ class Network:
         self.known_honests = []
         self.is_stitched = False
         self.attack_edges = []
+
+    def get_network_stats(self, per_comp=False):
+        if not self.is_stitched:
+            raise Exception("Network is not stitched")
+
+        return GraphStats(self.graph, per_comp)
+
 
     def __check_integrity(self):
         if self.left_region.is_sybil == self.right_region.is_sybil:

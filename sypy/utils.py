@@ -86,8 +86,8 @@ def compute_graph_stats(graph, to_stdout=False):
         cc_lengths.append(len(component))
     lcc = max(cc, key=len)
 
-    eccentricity = nx.eccentricity(graph.structure)
-    eccent_vals = eccentricity.values()
+    #eccentricity = nx.eccentricity(graph.structure)
+    #eccent_vals = eccentricity.values()
 
     graph_stats = {
         "basic": {
@@ -100,17 +100,17 @@ def compute_graph_stats(graph, to_stdout=False):
             "90_percentile": stats.scoreatpercentile(cc_lengths, 90),
             "nodes_lcc": len(lcc),
             "edges_lwcc": len(graph.structure.edges(lcc)),
-        },
-        "clustering": {
-            "average_cluster": nx.average_clustering(graph.structure),
-            "transitivity": nx.transitivity(graph.structure),
-        },
-        "eccentricity": {
-            "diamter": max(eccent_vals),
-            "radius": min(eccent_vals),
-            "50_percentile": stats.scoreatpercentile(eccent_vals, 50),
-            "90_percentile": stats.scoreatpercentile(eccent_vals, 90)
-        }
+        }#,
+        #"clustering": {
+        #    "average_cluster": nx.average_clustering(graph.structure),
+        #    "transitivity": nx.transitivity(graph.structure),
+        #},
+        #"eccentricity": {
+        #    "diamter": max(eccent_vals),
+        #    "radius": min(eccent_vals),
+        #    "50_percentile": stats.scoreatpercentile(eccent_vals, 50),
+        #    "90_percentile": stats.scoreatpercentile(eccent_vals, 90)
+        #}
     }
 
     if to_stdout:

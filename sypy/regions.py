@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from graphs import *
+from stats import *
 
 import random
 import networkx as nx
@@ -30,6 +31,9 @@ class Region:
         self.name = name
         self.is_sybil = is_sybil
         self.known_honests = None
+
+    def get_region_stats(self, per_comp=False):
+        return GraphStats(self.graph, per_comp)
 
     def pick_random_honest_nodes(self, num_nodes=1, seed=None):
         if self.is_sybil:

@@ -64,19 +64,19 @@ class ImportedGEXFGraph(BaseGraph):
     def __init__(self, file_path):
         BaseGraph.__init__(self)
         self.file_path = file_path
-        self.__import_from_gexf_file()
-        self.__filter()
+        self.__update_structure()
 
-    def import_from_gexf_file(self):
+    def __update_structure(self):
         imported_graph = nx.read_gexf(self.file_path)
+
         if not isinstance(imported_graph, nx.Graph):
             raise Exception("Imported graph is not undirected")
 
         self.structure = nx.convert_node_labels_to_integers(imported_graph)
+        self.__filter()
 
     def __filter(self):
         print "Post-import filtering goes here."
-
 
 class ZacharyKarateClubGraph(BaseGraph):
     """
