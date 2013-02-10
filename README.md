@@ -76,7 +76,7 @@ SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can 
 
 # How to install it?
 
-The first public release (version 0.1.0) is scheduled to be pushed by the end of April, 2013. Then, you can install the latest release of SyPy by issuing either <code>easy_install sypy</code> or <code>pip install sypy</code> (recommended). You can also find the EGG file at PyPI website [here](http://pypi.python.org/pypi/sypy). For now, feel free to fork the project and run the included examples.
+The first public release (version 0.1.0) is scheduled to be pushed by the end of April, 2013. Then, you can install the latest release of SyPy by issuing either <code>easy_install sypy</code> or <code>pip install sypy</code> (recommended). For now, feel free to fork the project and run the included examples.
 
 SyPy has been tested on a full installation of Ubuntu 12.10.
 
