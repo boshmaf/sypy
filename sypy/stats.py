@@ -19,29 +19,82 @@
 import networkx as nx
 import numpy as np
 import math
+import sypy
 
-class GraphStats():
+class Stats():
 
-    def __init__(self, graph):
+    def __init__(self, graph, skip_cc=False):
         self.graph = graph
 
         self.order = self.graph.order()
         self.size = self.graph.size()
 
-        self.cc = nx.connected_components(self.graph.structure)
-        self.num_cc = len(self.cc)
+        if skip_cc:
+            self.cc = nx.connected_components(self.graph.structure)
+            self.num_cc = len(self.cc)
 
-        self.lcc = max(self.cc, key=len)
-        self.lcc_order = len(self.lcc)
-        self.lcc_size = len(
-            self.graph.structure.edges(self.lcc)
+            self.lcc = max(self.cc, key=len)
+            self.lcc_order = len(self.lcc)
+            self.lcc_size = len(
+                self.graph.structure.edges(self.lcc)
+            )
+
+            self.scc = min(self.cc, key=len)
+            self.scc_order = len(self.scc)
+            self.scc_size = len(
+                self.graph.structure.edges(self.scc)
+            )
+
+    def normalized_conductance(self, subgraph, edge_cover=False):
+        if not isinstance(subgraph, sypy.BaseGraph):
+            raise Exception("Invalid graph")
+
+        if not nx.is_connected(subgraph.structure):
+            raise Exception("Subgraph is disconnected")
+
+        in_edges = subgraph.edges()
+        other_edges = list(
+            set(self.graph.edges()) - set(in_edges)
         )
 
-        self.scc = min(self.cc, key=len)
-        self.scc_order = len(self.scc)
-        self.scc_size = len(
-            self.graph.structure.edges(self.scc)
+        shared_edges = []
+        for (left_node, right_node) in other_edges:
+            if left_node in subgraph.structure or\
+                    right_node in subgraph.structure:
+                shared_edges.append(
+                    (left_node, right_node)
+                )
+
+        out_edges = list(
+            set(other_edges) - set(shared_edges)
         )
+        inshared_edges = list(
+            set(in_edges) | set(shared_edges)
+        )
+
+        subgraph_conductance = self.__compute_subgraph_conductance(
+            len(in_edges),
+            len(shared_edges)
+        )
+        randgraph_conductance = self.__compute_randgraph_conductance(
+            len(inshared_edges),
+            len(other_edges)
+        )
+        norm_conductance = subgraph_conductance - randgraph_conductance
+
+        if not edge_cover:
+            return norm_conductance
+
+        return (norm_conductance, shared_edges)
+
+
+    def __compute_subgraph_conductance(self, num_in, num_shared):
+        return num_in / (float)(num_in + num_shared)
+
+    def __compute_randgraph_conductance(self, num_inshared, num_other):
+        sqrd_inshared = num_inshared * num_inshared
+        sqrd_other = num_other * num_other
+        return sqrd_inshared / (float)(sqrd_inshared + sqrd_other)
 
     def compute_mixing_time_bounds(self, variation_distance=None,
             variation_distance_scaler=1.0, lcc_only=False):

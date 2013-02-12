@@ -16,13 +16,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from graphs import *
-from results import *
-from stats import *
-
 import matplotlib.pyplot as plt
 import networkx as nx
 import random
+import sypy
 
 class Network:
 
@@ -32,10 +29,14 @@ class Network:
         self.__check_integrity()
 
         self.name = name
-        self.graph = CustomGraph(nx.Graph())
+        self.graph = self.__setup_network_graph()
+
         self.known_honests = []
         self.is_stitched = False
         self.attack_edges = []
+
+    def get_network_stats(self, skip_cc=False):
+        return sypy.Stats(self.graph, skip_cc)
 
     def __check_integrity(self):
         if self.left_region.is_sybil == self.right_region.is_sybil:
@@ -56,6 +57,14 @@ class Network:
 
         if not self.left_region.known_honests:
             raise Exception("Known honests not set")
+
+    def __setup_network_graph(self):
+        structure = nx.disjoint_union(
+            self.left_region.graph.structure,
+            self.right_region.graph.structure
+        )
+
+        return sypy.CustomGraph(structure)
 
     def random_pair_stitch(self, num_edges, seed=None):
         if seed:

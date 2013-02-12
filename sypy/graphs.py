@@ -21,24 +21,27 @@ from scipy.stats import powerlaw
 import numpy as np
 import networkx as nx
 import random
-
+import sypy
 
 class BaseGraph:
 
     def __init__(self):
         self.structure = nx.Graph()
 
-    def nodes(self, data=False):
-        return self.structure.nodes(data)
+    def nodes(self, node_data=False):
+        return self.structure.nodes(data=node_data)
 
-    def edges(self, data=False):
-        return self.structure.edges(data)
+    def edges(self, edge_data=False):
+        return self.structure.edges(data=edge_data)
 
     def order(self):
         return self.structure.order()
 
     def size(self, weight=None):
-        return self.structure.size(weight)
+        return self.structure.size(weight=weight)
+
+    def get_graph_stats(self, skip_cc=False):
+        return sypy.Stats(self, skip_cc)
 
     def export_to_gexf_file(self, file_path, compressed=True):
         if compressed:
