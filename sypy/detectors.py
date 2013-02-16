@@ -63,7 +63,15 @@ class GenericBCCDetector(BaseDetector):
         return sypy.Results(self)
 
 
-class GirvanNewmanCommunityDetector(BaseDetector):
+class BaseCommunityDetector(BaseDetector):
+
+    def __init__(self, network, max_level):
+        BaseDetector.__init__(self, network)
+        self.dendogram = nx.DiGraph()
+        self.max_level = max_level
+
+
+class GirvanNewmanCommunityDetector(BaseCommunityDetector):
     """
     Implements Girvan-Newman community detection algorithm as described
     in Community Structure in Social and Biological Networks, Girvan et al.
@@ -74,9 +82,7 @@ class GirvanNewmanCommunityDetector(BaseDetector):
     tightly-knit communities or clusters, as a way to detect Sybils.
     """
     def __init__(self, network, max_level=1):
-        BaseDetector.__init__(self, network)
-        self.dendogram = nx.DiGraph()
-        self.max_level = max_level
+        BaseCommunityDetector.__init__(self, network, max_level)
 
     def detect(self):
         structure = self.network.graph.structure.copy()
@@ -499,10 +505,11 @@ class MisloveSingleCommunityDetector(BaseDetector):
         membership = {}
         max_conductance = conductance
         for (left_node, right_node) in edge_cover:
-            (candidate_node, candidate_edge) = self.__get_candidate(
-                left_node,
-                right_node
-            )
+            candidate_node = left_node
+            if left_node not in self.honests_graph.structure:
+                candidate_node = right_node
+
+            candidate_edge = (left_node, right_node)
 
             candidate_graph = sypy.CustomGraph(
                 self.honests_graph.structure.copy()
@@ -516,11 +523,11 @@ class MisloveSingleCommunityDetector(BaseDetector):
 
             if new_conductance > max_conductance:
                 max_conductance = new_conductance
-                membership = self.__get_membership(
-                    candidate_node,
-                    candidate_edge,
-                    new_cover
-                )
+                membership = {
+                    "node": candidate_node,
+                    "edge": candidate_edge,
+                    "cover": new_cover
+                }
 
         return (membership, max_conductance)
 
@@ -531,9 +538,147 @@ class MisloveSingleCommunityDetector(BaseDetector):
 
         return (right_node, edge)
 
-    def __get_membership(self, candidate_node, candidate_edge, new_cover):
-        return {
-            "node": candidate_node,
-            "edge": candidate_edge,
-            "cover": new_cover
-        }
+
+class LouvainCommunityDetector(BaseCommunityDetector):
+
+    def __init__(self, network, max_level=1, threshold=0.0):
+        BaseCommunityDetector.__init__(self, network, max_level)
+        self.threshold = threshold
+
+    def detect(self):
+        structure = self.network.graph.structure.copy()
+        uni_weights = {}
+        for edge in structure.edges():
+            uni_weights[edge] = 1.0
+        nx.set_edge_attributes(structure, "weight", uni_weights)
+
+        for node in structure:
+            substructure = structure.subgraph([node])
+            self.dendogram.add_node(substructure)
+
+        level=0
+        while level != self.max_level:
+            super_structures = self.__collapse(structure)
+            structure = self.__transfrorm(structure, super_structures)
+            level = level + 1
+
+    def __collapse(self, structure):
+        collapsed = True
+
+        super_structures = {}
+        for node in structure:
+            super_structures[node] = node
+
+        while collapsed:
+            collapsed = False
+
+            for node in structure:
+                neighbors = structure.neighbors(node)
+
+                super_structure = None
+                max_gain = self.__compute_modularity_gain(
+                    node,
+                    node,
+                    structure,
+                    super_structures
+                )
+                for neighbor in neighbors:
+                    if super_structures[neighbor] != super_structures[node]:
+                        modularity_gain = self.__compute_modularity_gain(
+                            node,
+                            neighbor,
+                            structure,
+                            super_structures
+                        )
+
+                        if modularity_gain > (max_gain + self.threshold):
+                            max_gain = modularity_gain
+                            super_structure = super_structures[neighbor]
+
+                if super_structure:
+                    super_structures[node] = super_structure
+                    collapsed = True
+
+        return super_structures
+
+    def __compute_modularity_gain(self, node, neighbor, structure, super_structures):
+        C = super_structures[neighbor]
+
+        collapsed_supers = {}
+        for node, super_structure in super_structures.iteritems():
+            collapsed_supers.setdefault(super_structure, []).append(node)
+
+        C_nodes = collapsed_supers[C]
+
+        C_subgraph = structure.subgraph(C_nodes)
+
+        sigma_in = C_subgraph.size(weight="weight")
+
+        k_i = structure.degree(node, weight="weight")
+
+        m = structure.size(weight="weight")
+
+        C_out = list(
+            set(structure.edges()) - set(C_subgraph.edges())
+        )
+
+        C_shared = []
+        k_i_edges = []
+        for (left_node, right_node) in C_out:
+            if left_node in C_nodes or right_node in C_nodes:
+                C_shared.append((left_node, right_node))
+            if left_node == node or right_node == node:
+                k_i_edges.append((left_node, right_node))
+
+        sigma_tot = 0
+        for left_node, right_node in C_shared:
+            sigma_tot += structure[left_node][right_node]["weight"]
+
+        k_i_in = 0
+        for left_node, right_node in k_i_edges:
+            k_i_in += structure[left_node][right_node]["weight"]
+
+        term_1 = (sigma_tot + k_i) / (float)(2*m)
+        term_2 = sigma_tot / (float)(2*m)
+        term_3 = k_i / (float)(2*m)
+        mod_gain = ((sigma_in + k_i_in)/(float)(2*m) - (term_1 * term_1)) -\
+            ((sigma_in)/(float)(2*m) - (term_2 * term_2) - (term_3 * term_3))
+
+        return mod_gain
+
+    def __transform(self, structure, super_structures):
+        collapsed_supers = {}
+        for node, super_structure in super_structures.iteritems():
+            collapsed_supers.setdefault(super_structure, []).append(node)
+
+        for super_structure, nodes in collapsed_supers.iteritems():
+            super_subgraph = structure.subgraph(nodes)
+            self.dendogram.add_node(super_subgraph)
+            for graph in self.dendogram:
+                if set(graph.nodes()) == set(nodes):
+                    self.dendogram.add_edge(super_subgraph, graph)
+
+        new_structure = nx.Graph()
+        for super_structure in collapsed_supers.keys():
+            new_structure.add_node(super_structure)
+            other_structures = list(
+                set(collapsed_supers.keys()) - set(super_structure)
+            )
+            super_edges = structure.edges(collapsed_supers[super_structure])
+            if len(super_edges) > 0:
+                new_structure.add_edge(
+                    super_structure,
+                    super_structure,
+                    weight=len(super_edges)
+                )
+            for other_structure in other_structures:
+                other_edges = structure.edges(collapsed_supers[other_structure])
+                shared = list(
+                   set(super_edges) & set(other_edges)
+                )
+                if len(shared) > 0:
+                    new_structure.add_edge(
+                        super_structure,
+                        other_structure,
+                        weight=len(shared)
+                    )
