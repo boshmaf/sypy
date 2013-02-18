@@ -221,7 +221,7 @@ class Stats():
         """
         level = 0
         dendogram = {}
-        structure = self.graph.structure.copy()
+        structure = self.graph.structure
 
         dendogram[level] = dict(
             (node, [node]) for node in structure
