@@ -40,6 +40,13 @@ class Stats():
             )
 
     def normalized_conductance(self, subgraph, edge_cover=False):
+        """
+        Returns the normalized conductance of the graph over the given
+        subgraph as described in You Are Who You Know: Inferring User Profiles
+        in Online Social Networks, Mislove et al., WSDM, 2010.
+        If specified, the implementation also returns the edge cover of the
+        subgraph (i.e., the edges in the graph incident to the subgraph).
+        """
         if not isinstance(subgraph, sypy.BaseGraph):
             raise Exception("Invalid graph")
 
@@ -170,7 +177,7 @@ class Stats():
 
     def modularity(self, partitions):
         """
-        Returns the modularity of the graph using the partitioning as
+        Returns the modularity of the graph using the given partitioning as
         described in Finding and Evaluating Community Structure in Networks,
         Newman et al., Phys. Rev. (69), 2004.
         """
@@ -206,13 +213,11 @@ class Stats():
     def louvain_communities(self, max_level=1, threshold=0.0, best=True):
         """
         Returns a dendogram of best communitiy partitioning in the graph using
-        the Louvain method for community detection as described in Fast
-        Unfolding of Communities in Large Networks, Blondel et al., J. of
-        Stat. Mech. Thry. and Exper. (10), 2008.
+        the Louvain method as described in Fast Unfolding of Communities in
+        Large Networks, Blondel et al., J. of Stat. Mech. (10), 2008.
         For modularity gain, the implementation uses the definition described
         in Multilevel Local Search Algorithms for Modularity Clustering,
         Rotta et al., J. Exp. Algorithmics (16), 2011.
-
         """
         level = 0
         dendogram = {}
