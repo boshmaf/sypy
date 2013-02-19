@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import networkx as nx
+import operator
 import random
 import math
 import copy
@@ -178,6 +179,82 @@ class BaseSybilDetector(BaseDetector):
         valid_verifiers = set(self.verifiers).issubset(set(self.honests_truth))
         if not valid_verifiers:
             raise Exception("Invalid verifiers. Not subset of honests")
+
+class SybilRankDetector(BaseSybilDetector):
+    """
+    Implements a centralized version of the SybilRank protocol as described
+    in Aiding the Detection of Fake Accounts in Large Scale Social Online
+    Services, Cao et al., Usenix NSDI, 2012.
+    This implementation assumes a single community honest region. The case
+    of multi-community structure can br reduced to a single-community structure
+    by applying Louvain community detection algorithm and running SybilRank
+    on every community.
+    """
+    def __init__(self, network, verifiers=None, pivot=0.1, seed=None,
+            num_iterations_scaler=1.0):
+        BaseSybilDetector.__init__(self, network, verifiers, seed)
+        self.pivot = pivot
+        self.num_iterations_scaler = num_iterations_scaler
+
+    def detect(self):
+        num_iterations = math.log10(
+            self.network.graph.order()
+        ) * self.num_iterations_scaler
+        num_iterations = (int)(math.ceil(num_iterations))
+
+        network_trust = self.__initialize_network_trust()
+
+        while num_iterations != 0:
+            network_trust = self.__propagate_network_trust(network_trust)
+            num_iterations = num_iterations - 1
+
+        ranked_trust = self.__normalize_and_rank_network_trust(network_trust)
+
+        pivot_mark = (int)(self.pivot * len(ranked_trust))
+        verified_honests = [
+            honest_node for honest_node, trust in ranked_trust[pivot_mark+1:]
+        ]
+        self._vote_honests_predicted([verified_honests])
+
+        return sypy.Results(self)
+
+    def __initialize_network_trust(self):
+        network_trust = dict(
+            (node, 0.0) for node in self.network.graph.nodes()
+        )
+
+        for verifier in self.verifiers:
+            network_trust[verifier] = 1.0 / (float)( len(self.verifiers) )
+
+        return network_trust
+
+    def __propagate_network_trust(self, network_trust):
+        updated_trust = {}
+        for node, trust in network_trust.iteritems():
+            new_trust = 0.0
+            neighbors = list(
+                set(self.network.graph.structure.neighbors(node)) - set([node])
+            )
+
+            for neighbor in neighbors:
+                neighbor_degree = self.network.graph.structure.degree(neighbor)
+                new_trust += network_trust[neighbor] / (float)(neighbor_degree)
+
+            updated_trust[node] = new_trust
+
+        return updated_trust
+
+    def __normalize_and_rank_network_trust(self, network_trust):
+        for node, trust in network_trust.iteritems():
+            node_degree = self.network.graph.structure.degree(node)
+            network_trust[node] = trust / (float)(node_degree)
+
+        ranked_trust = sorted(
+            network_trust.iteritems(),
+            key=operator.itemgetter(1)
+        )
+
+        return ranked_trust
 
 
 class SybilGuardDetector(BaseSybilDetector):
