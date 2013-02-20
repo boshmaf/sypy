@@ -23,21 +23,45 @@ import sypy
 
 class Stats():
 
-    def __init__(self, graph, skip_cc=False):
+    def __init__(self, graph):
         self.graph = graph
 
         self.order = self.graph.order()
         self.size = self.graph.size()
+        self.is_directed = self.graph.structure.is_directed()
 
-        if not skip_cc:
-            cc = nx.connected_components(self.graph.structure)
-            self.num_cc = len(cc)
+        cc = nx.connected_components(self.graph.structure)
+        self.num_cc = len(cc)
+        self.is_connected = (self.num_cc == 1)
 
-            self.lcc = max(cc, key=len)
-            self.lcc_order = len(self.lcc)
-            self.lcc_size = len(
-                self.graph.structure.edges(self.lcc)
-            )
+    def largest_connected_component(self):
+        cc = nx.connected_components(self.graph.structure)
+        lcc_structure = self.graph.structure.subgraph(
+            max(cc, key=len)
+        )
+
+        lcc_graph = sypy.CustomGraph(lcc_structure)
+        return lcc_graph
+
+    def clustering_coefficient(self):
+        if not self.is_connected:
+            raise Exception("Graph is not connected")
+        return nx.average_clustering(self.graph.structure)
+
+    def transitivity(self):
+        if not self.is_connected:
+            raise Exception("Graph is not connected")
+        return nx.transitivity(self.graph.structure)
+
+    def diameter(self):
+        if not self.is_connected:
+            raise Exception("Graph is not connected")
+        return nx.diameter(self.graph.structure)
+
+    def radius(self):
+        if not self.is_connected:
+            raise Exception("Graph is not connected")
+        return nx.radius(self.graph.structure)
 
     def normalized_conductance(self, subgraph, edge_cover=False):
         """

@@ -30,8 +30,8 @@ class Region:
         self.seed = seed
         self.known_honests = None
 
-    def get_region_stats(self, skip_cc=False):
-        return sypy.Stats(self.graph, skip_cc)
+    def get_region_stats(self):
+        return sypy.Stats(self.graph)
 
     def pick_random_honest_nodes(self, num_nodes=1):
         self.__setup_honest_nodes(num_nodes)

@@ -185,10 +185,10 @@ class SybilRankDetector(BaseSybilDetector):
     Implements a centralized version of the SybilRank protocol as described
     in Aiding the Detection of Fake Accounts in Large Scale Social Online
     Services, Cao et al., Usenix NSDI, 2012.
-    This implementation assumes a single community honest region. The case
-    of multi-community structure can br reduced to a single-community structure
+    This implementation assumes a single-community honest region. The case
+    of multi-community structure can be reduced to a single-community structure
     by applying Louvain community detection algorithm and running SybilRank
-    on every community.
+    on every community, as described in the paper.
     """
     def __init__(self, network, verifiers=None, pivot=0.1, seed=None,
             num_iterations_scaler=1.0):
@@ -557,7 +557,7 @@ class MisloveSingleCommunityDetector(BaseDetector):
         return sypy.Results(self)
 
     def __grow_community(self):
-        stats = self.network.get_network_stats(skip_cc=True)
+        stats = self.network.get_network_stats()
         (conductance, edge_cover) = stats.normalized_conductance(
             self.honests_graph,
             edge_cover=True

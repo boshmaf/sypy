@@ -40,8 +40,8 @@ class BaseGraph:
     def size(self, weight=None):
         return self.structure.size(weight=weight)
 
-    def get_graph_stats(self, skip_cc=False):
-        return sypy.Stats(self, skip_cc)
+    def get_graph_stats(self):
+        return sypy.Stats(self)
 
     def export_to_gexf_file(self, file_path, compressed=True):
         if compressed:

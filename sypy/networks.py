@@ -35,8 +35,8 @@ class Network:
         self.is_stitched = False
         self.attack_edges = []
 
-    def get_network_stats(self, skip_cc=False):
-        return sypy.Stats(self.graph, skip_cc)
+    def get_network_stats(self):
+        return sypy.Stats(self.graph)
 
     def __check_integrity(self):
         if self.left_region.is_sybil == self.right_region.is_sybil:
