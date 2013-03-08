@@ -91,7 +91,13 @@ class TestCustomGraph(object):
         ok_(type(self.nx_graph) != type(self.tri_graph.structure))
 
 class TestImportedGEXFGraph(object):
-    pass
+    def setUp(self):
+        self.compressed_gexf_graph = sypy.ImportedGEXFGraph('gexf_test.gz')
+        self.uncompressed_gexf_graph = sypy.ImportedGEXFGraph('gexf_test')
+
+    def test_nodes(self):
+        eq_(self.compressed_gexf_graph.nodes(), range(10))
+        eq_(self.uncompressed_gexf_graph.nodes(), range(10))
 
 class TestZacharyKarateClubGraph(object):
     def setUp(self):

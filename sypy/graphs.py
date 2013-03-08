@@ -251,8 +251,8 @@ class LFRCommunityGraph(BaseGraph):
 
     def __update_structure(self):
         if self.seed:
-            random.seed(seed)
-            np.random.seed(seed)
+            random.seed(self.seed)
+            np.random.seed(self.seed)
 
         comm_sizes = self.__get_community_sizes()
         self.structure.add_nodes_from(range(sum(comm_sizes)))
