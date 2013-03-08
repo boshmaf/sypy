@@ -4,6 +4,7 @@ import networkx as nx
 
 
 class TestBaseGraph(object):
+    """ Tests for BaseGraph class."""
     def setUp(self):
         self.edge_list = [(0,1), (1,2), (0,2)]
         self.node_list = [0,1,2]
@@ -70,6 +71,7 @@ class TestBaseGraph(object):
 
 
 class TestCustomGraph(object):
+    """ Tests for CustomGraph class."""
     def setUp(self):
         self.nx_graph = nx.Graph()
         self.nx_graph.add_nodes_from(range(10))
@@ -88,6 +90,7 @@ class TestCustomGraph(object):
         ok_(type(self.nx_graph) != type(self.tri_graph.structure))
 
 class TestImportedGEXFGraph(object):
+    """ Tests for ImportedGEXFGraph class."""
     def setUp(self):
         self.compressed_gexf_graph = sypy.ImportedGEXFGraph('gexf_test.gz')
         self.uncompressed_gexf_graph = sypy.ImportedGEXFGraph('gexf_test')
@@ -97,6 +100,7 @@ class TestImportedGEXFGraph(object):
         eq_(self.uncompressed_gexf_graph.nodes(), range(10))
 
 class TestZacharyKarateClubGraph(object):
+    """ Tests for ZacharyKarateClubGraph class."""
     def setUp(self):
         self.karate_club = sypy.ZacharyKarateClubGraph()
 
@@ -104,6 +108,7 @@ class TestZacharyKarateClubGraph(object):
         eq_(type(self.karate_club.structure), type(nx.karate_club_graph()))
 
 class TestFlorentineFamiliesGraph(object):
+    """ Tests for FlorentineFamiliesGraph class."""
     def setUp(self):
         self.florentine_families_graph = sypy.FlorentineFamiliesGraph()
 
@@ -111,6 +116,7 @@ class TestFlorentineFamiliesGraph(object):
         eq_(type(self.florentine_families_graph.structure), type(nx.florentine_families_graph()))
 
 class TestCompleteGraph(object):
+    """ Tests for CompleteGraph class."""
     def setUp(self):
         self.num_nodes = 10
         self.complete_graph = sypy.CompleteGraph(self.num_nodes)
@@ -123,11 +129,15 @@ class TestCompleteGraph(object):
     def test_type(self):
         eq_(type(self.complete_graph.structure), type(nx.complete_graph(self.num_nodes)))
 
+    def test_nodes(self):
+        eq_(self.num_nodes, self.complete_graph.nodes())
+
     def test_size(self):
         expected_size = self.num_nodes * (self.num_nodes - 1) / 2
         eq_(self.complete_graph.size(), expected_size)
 
 class TestSmallWorldGraph(object):
+    """ Tests for SmallWorldGraph class."""
     def setUp(self):
         self.num_nodes = 10
         self.node_degree = 2
@@ -151,6 +161,7 @@ class TestSmallWorldGraph(object):
 
 
 class TestPowerLawGraph(object):
+    """ Tests for PowerLawGraph class."""
     def setUp(self):
         self.num_nodes = 10
         self.node_degree = 2
@@ -185,6 +196,7 @@ class TestPowerLawGraph(object):
         ok_(nx.is_connected(self.powerlaw_graph.structure))
 
 class TestGirvanNewmanCommunityGraph(object):
+    """ Tests for GirvanNewmanCommunityGraph class."""
     def setUp(self):
         self.num_comm = 4
         self.comm_size = 32
@@ -211,6 +223,7 @@ class TestGirvanNewmanCommunityGraph(object):
         ok_(self.girvan_newman_graph.size() > 0)
 
 class TestLFRCommunityGraph(object):
+    """ Tests for TestLFRCommunityGraph class."""
     def setUp(self):
         self.num_comm = 3
         self.max_comm = 100
