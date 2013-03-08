@@ -1,6 +1,3 @@
-# Remember to add documentation
-# remember to try weights
-
 from nose.tools import *
 import sypy
 import networkx as nx
@@ -120,6 +117,8 @@ class TestCompleteGraph(object):
 
     def test_order(self):
         eq_(self.num_nodes, self.complete_graph.order())
+        self.complete_graph.add_node(10)
+        eq_(self.num_nodes+1, self.complete_graph.order())
 
     def test_type(self):
         eq_(type(self.complete_graph.structure), type(nx.complete_graph(self.num_nodes)))
@@ -142,13 +141,6 @@ class TestSmallWorldGraph(object):
             self.tries,
             self.seed
         )
-        self.nx_graph = nx.connected_watts_strogatz_graph(
-            self.num_nodes,
-            self.node_degree,
-            self.rewire_prob,
-            self.tries,
-            self.seed
-        )
 
     def test_consistency(self):
         eq_(self.num_nodes, self.small_world_graph.num_nodes)
@@ -156,12 +148,6 @@ class TestSmallWorldGraph(object):
         eq_(self.rewire_prob, self.small_world_graph.rewire_prob)
         eq_(self.tries, self.small_world_graph.tries)
         eq_(self.seed, self.small_world_graph.seed)
-
-    def test_type(self):
-        eq_(type(self.small_world_graph.structure), type(nx.connected_watts_strogatz_graph(10,2,0.2)))
-
-    def test_dict(self):
-        eq_(self.small_world_graph.structure.__dict__, self.nx_graph.__dict__)
 
 
 class TestPowerLawGraph(object):
