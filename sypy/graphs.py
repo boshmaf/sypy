@@ -181,8 +181,8 @@ class GirvanNewmanCommunityGraph(BaseGraph):
 
     Note: For large number of communities with small community size, the
     average number of inter-community edges per node (avg_intercomm) should
-    be small and close to 0. The default values are those used by Grivan et al.
-    in their original work, and they guarantee the generaiton of a graph with
+    be small and close to 0. The default values are those used by Girvan et al.
+    in their original work, and they guarantee the generation of a graph with
     well-defined community structure.
     """
     def __init__(self, num_comm=4, comm_size=32, avg_intercomm=1, seed=None):

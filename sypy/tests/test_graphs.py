@@ -1,103 +1,81 @@
 from nose.tools import *
 import sypy
 import networkx as nx
+import os
 
 
 class TestBaseGraph(object):
     """ Tests for BaseGraph class."""
     def setUp(self):
-        self.edge_list = [(0,1), (1,2), (0,2)]
-        self.node_list = [0,1,2]
-        self.num_nodes = 3
+        self.tri_nx_graph = nx.complete_graph(3)
+        self.tri_nx_graph[0][1]["weight"] = 0.9
+        self.tri_nx_graph[1][2]["weight"] = 2.1
+        self.tri_nx_graph[0][2]["weight"] = -.5
         self.tri_graph = sypy.BaseGraph()
-        self.tri_graph.structure.add_edges_from(self.edge_list)
-
-        self.weighted_graph = sypy.BaseGraph()
-        self.weighted_graph.structure.add_edge(0,1,weight=0.9)
-        self.weighted_graph.structure.add_edge(1,2,weight=2.1)
-        self.weighted_graph.structure.add_edge(0,2,weight=-.5)
-
-        self.colored_graph = sypy.BaseGraph()
-        self.colored_graph.structure.add_node(0, {'color':'red'})
-        self.colored_graph.structure.add_node(1, {'color':'yellow'})
-        self.colored_graph.structure.add_node(2, {'color':'green'})
+        self.tri_graph.structure = self.tri_nx_graph
 
     def test_order(self):
-        eq_(self.tri_graph.order(), self.num_nodes)
-        self.tri_graph.structure.remove_node(2)
-        eq_(self.tri_graph.order(), self.num_nodes-1)
+        eq_(self.tri_graph.order(), self.tri_nx_graph.order())
 
     def test_edges(self):
-        for edge in self.edge_list:
-            ok_(edge in self.tri_graph.edges())
-        self.tri_graph.structure.add_edge(3,4)
-        for edge in self.edge_list+[(3,4)]:
-            ok_(edge in self.tri_graph.edges())
-
-    def test_edges_data(self):
-        ok_('weight' in str(self.weighted_graph.edges(True)))
-        ok_('weight' not in str(self.tri_graph.edges(True)))
-        ok_('weight' not in str(self.colored_graph.edges(True)))
+        eq_(self.tri_graph.edges(), self.tri_nx_graph.edges())
+        eq_(self.tri_graph.edges(True), self.tri_nx_graph.edges(data=True))
 
     def test_nodes(self):
-        eq_(self.tri_graph.nodes(), self.node_list)
-        self.tri_graph.structure.add_node(3)
-        eq_(self.tri_graph.nodes(), self.node_list+[3])
-
-    def test_nodes_data(self):
-        ok_('color' in str(self.colored_graph.nodes(True)))
-        ok_('color' not in str(self.weighted_graph.nodes(True)))
-        ok_('color' not in str(self.tri_graph.nodes(True)))
+        eq_(self.tri_graph.nodes(), self.tri_nx_graph.nodes())
+        eq_(self.tri_graph.nodes(True), self.tri_nx_graph.nodes(data=True))
 
     def test_size(self):
-        eq_(self.tri_graph.size(), 3)
-        self.tri_graph.structure.add_edge(2,3)
-        eq_(self.tri_graph.size(), 4)
-        self.tri_graph.structure.remove_edge(0,1)
-        eq_(self.tri_graph.size(), 3)
-
-    def test_weight(self):
-        eq_(self.weighted_graph.size('weight'), 2.5)
-        self.weighted_graph.structure.add_edge(2,3,weight=-3)
-        eq_(self.weighted_graph.size('weight'), -0.5)
+        eq_(self.tri_graph.size(), self.tri_nx_graph.size())
+        eq_(self.tri_graph.size("weight"), self.tri_nx_graph.size(weight="weight"))
 
     def test_stats(self):
         self.stats = sypy.Stats(self.tri_graph)
         eq_(self.stats.__dict__, self.tri_graph.get_graph_stats().__dict__)
 
-    def test_type(self):
-        eq_(type(self.tri_graph.structure), type(nx.Graph()))
-        eq_(type(self.weighted_graph.structure), type(nx.Graph()))
+    def test_export_gexf(self):
+        self.tri_graph.export_to_gexf_file("gexf_test", compressed=True)
+        self.tri_graph.export_to_gexf_file("gexf_test", compressed=False)
+
+        os.remove("gexf_test")
+        os.remove("gexf_test.gz")
 
 
 class TestCustomGraph(object):
     """ Tests for CustomGraph class."""
     def setUp(self):
-        self.nx_graph = nx.Graph()
-        self.nx_graph.add_nodes_from(range(10))
+        self.nx_graph = nx.complete_graph(5)
         self.tri_graph = sypy.CustomGraph(self.nx_graph)
 
-    def test_dict(self):
-        eq_(self.nx_graph.__dict__, self.tri_graph.structure.__dict__)
-        self.nx_graph = nx.DiGraph()
-        self.nx_graph.add_nodes_from(range(10))
-        ok_(self.nx_graph.__dict__ != self.tri_graph.structure.__dict__)
-
-    def test_type(self):
-        eq_(type(self.nx_graph), type(self.tri_graph.structure))
-        self.nx_graph = nx.DiGraph()
-        self.nx_graph.add_nodes_from(range(10))
-        ok_(type(self.nx_graph) != type(self.tri_graph.structure))
+    def test_structure(self):
+        eq_(self.tri_graph.structure, self.nx_graph)
 
 class TestImportedGEXFGraph(object):
     """ Tests for ImportedGEXFGraph class."""
     def setUp(self):
-        self.compressed_gexf_graph = sypy.ImportedGEXFGraph('gexf_test.gz')
+        complete_graph = sypy.BaseGraph()
+        complete_graph.export_to_gexf_file("gexf_test", compressed=True)
+        complete_graph.export_to_gexf_file("gexf_test", compressed=False)
+
+        self.compressed_gexf_graph = sypy.ImportedGEXFGraph("gexf_test.gz")
         self.uncompressed_gexf_graph = sypy.ImportedGEXFGraph('gexf_test')
 
-    def test_nodes(self):
-        eq_(self.compressed_gexf_graph.nodes(), range(10))
-        eq_(self.uncompressed_gexf_graph.nodes(), range(10))
+    def tearDown(self):
+        os.remove("gexf_test")
+        os.remove("gexf_test.gz")
+
+    @raises(Exception)
+    def test_wrong_graph(self):
+        digraph = sypy.CustomGraph(nx.DiGraph())
+        digraph.export_to_gexf_file("DiGraph", compressed=True)
+        try:
+            digraph = sypy.ImportedGEXFGraph("DiGraph")
+        except Exception:
+            os.remove("DiGraph.gz")
+            return
+        finally:
+            os.remove("DiGraph.gz")
+            ok_(false)
 
 class TestZacharyKarateClubGraph(object):
     """ Tests for ZacharyKarateClubGraph class."""
@@ -120,17 +98,6 @@ class TestCompleteGraph(object):
     def setUp(self):
         self.num_nodes = 10
         self.complete_graph = sypy.CompleteGraph(self.num_nodes)
-
-    def test_order(self):
-        eq_(self.num_nodes, self.complete_graph.order())
-        self.complete_graph.add_node(10)
-        eq_(self.num_nodes+1, self.complete_graph.order())
-
-    def test_type(self):
-        eq_(type(self.complete_graph.structure), type(nx.complete_graph(self.num_nodes)))
-
-    def test_nodes(self):
-        eq_(self.num_nodes, self.complete_graph.nodes())
 
     def test_size(self):
         expected_size = self.num_nodes * (self.num_nodes - 1) / 2
@@ -159,38 +126,25 @@ class TestSmallWorldGraph(object):
         eq_(self.tries, self.small_world_graph.tries)
         eq_(self.seed, self.small_world_graph.seed)
 
-
 class TestPowerLawGraph(object):
     """ Tests for PowerLawGraph class."""
     def setUp(self):
         self.num_nodes = 10
         self.node_degree = 2
         self.prob_triad = 0.5
-        self.seed = 9999
+        self.seed = None
         self.powerlaw_graph = sypy.PowerLawGraph(
             self.num_nodes,
             self.node_degree,
             self.prob_triad,
             self.seed
         )
-        self.nx_graph = nx.powerlaw_cluster_graph(
-            self.num_nodes,
-            self.node_degree,
-            self.prob_triad,
-            self.seed
-        )
-
-    def test_dict(self):
-        eq_(self.powerlaw_graph.structure.__dict__, self.nx_graph.__dict__)
 
     def test_consistecy(self):
         eq_(self.num_nodes, self.powerlaw_graph.num_nodes)
         eq_(self.node_degree, self.powerlaw_graph.node_degree)
         eq_(self.prob_triad, self.powerlaw_graph.prob_triad)
         eq_(self.seed, self.powerlaw_graph.seed)
-
-    def test_type(self):
-        eq_(type(self.powerlaw_graph.structure), type(nx.powerlaw_cluster_graph(10, 2, 0.5)))
 
     def test_connected(self):
         ok_(nx.is_connected(self.powerlaw_graph.structure))
@@ -209,18 +163,22 @@ class TestGirvanNewmanCommunityGraph(object):
             self.seed
         )
 
-    def test_consistency(self):
-        eq_(self.num_comm, self.girvan_newman_graph.num_comm)
-        eq_(self.comm_size, self.girvan_newman_graph.comm_size)
-        eq_(self.avg_intercomm, self.girvan_newman_graph.avg_intercomm)
-        eq_(self.seed, self.girvan_newman_graph.seed)
-
     def test_order(self):
         expected_order = self.num_comm * self.comm_size
         eq_(expected_order, self.girvan_newman_graph.order())
 
     def test_size(self):
         ok_(self.girvan_newman_graph.size() > 0)
+
+    def smoke_test(self):
+        self.null_comm_size = sypy.GirvanNewmanCommunityGraph(comm_size=0)
+        self.single_comm = sypy.GirvanNewmanCommunityGraph(num_comm=1)
+        self.null_comm = sypy.GirvanNewmanCommunityGraph(num_comm=0)
+
+    def negative_values(self):
+        self.neg_comm_size = sypy.GirvanNewmanCommunityGraph(comm_size=-5)
+        self.neg_comm_num = sypy.GirvanNewmanCommunityGraph(num_comm=-5)
+
 
 class TestLFRCommunityGraph(object):
     """ Tests for TestLFRCommunityGraph class."""
