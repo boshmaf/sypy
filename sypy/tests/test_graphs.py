@@ -168,16 +168,16 @@ class TestGirvanNewmanCommunityGraph(object):
         eq_(expected_order, self.girvan_newman_graph.order())
 
     def test_communities(self):
-        communities = nx.get_node_attributes(
+        node_2_comm = nx.get_node_attributes(
             self.girvan_newman_graph.structure,
             "community"
         )
-        inv_map = {}
-        for k, v in communities.iteritems():
-            inv_map.setdefault(v, []).append(k)
-        eq_(len(inv_map.keys()), self.num_comm)
-        for v in inv_map.values():
-            eq_(len(v), self.comm_size)
+        comm_2_node = {}
+        for node, comm in node_2_comm.iteritems():
+            comm_2_node.setdefault(comm, []).append(node)
+        eq_(len(comm_2_node.keys()), self.num_comm)
+        for nodes in comm_2_node.values():
+            eq_(len(nodes), self.comm_size)
 
     def smoke_test(self):
         self.null_comm_size = sypy.GirvanNewmanCommunityGraph(comm_size=0)
@@ -218,16 +218,16 @@ class TestLFRCommunityGraph(object):
         sypy.LFRCommunityGraph(0,0,0,0,0,0,0,0)
 
     def test_communities(self):
-        communities = nx.get_node_attributes(
+        node_2_comm = nx.get_node_attributes(
             self.lfr_graph.structure,
             "community"
         )
-        inv_map = {}
-        for k, v in communities.iteritems():
-            inv_map.setdefault(v, []).append(k)
-        eq_(len(inv_map.keys()), self.num_comm)
-        for v in inv_map.values():
-            ok_(len(v) <= self.max_comm)
+        comm_2_node = {}
+        for node, comm in node_2_comm.iteritems():
+            comm_2_node.setdefault(comm, []).append(node)
+        eq_(len(comm_2_node.keys()), self.num_comm)
+        for nodes in comm_2_node.values():
+            ok_(len(nodes) <= self.max_comm)
 
     def test_degree(self):
         for node, degree in self.lfr_graph.structure.degree_iter():
