@@ -146,7 +146,7 @@ class TestPowerLawGraph(object):
         eq_(self.prob_triad, self.powerlaw_graph.prob_triad)
         eq_(self.seed, self.powerlaw_graph.seed)
 
-    def test_connected(self):
+    def test_connectivity(self):
         ok_(nx.is_connected(self.powerlaw_graph.structure))
 
 class TestGirvanNewmanCommunityGraph(object):
@@ -167,18 +167,28 @@ class TestGirvanNewmanCommunityGraph(object):
         expected_order = self.num_comm * self.comm_size
         eq_(expected_order, self.girvan_newman_graph.order())
 
-    def test_size(self):
-        ok_(self.girvan_newman_graph.size() > 0)
+    def test_communities(self):
+        communities = nx.get_node_attributes(
+            self.girvan_newman_graph.structure,
+            "community"
+        )
+        inv_map = {}
+        for k, v in communities.iteritems():
+            inv_map.setdefault(v, []).append(k)
+        eq_(len(inv_map.keys()), self.num_comm)
+        for v in inv_map.values():
+            eq_(len(v), self.comm_size)
 
     def smoke_test(self):
         self.null_comm_size = sypy.GirvanNewmanCommunityGraph(comm_size=0)
         self.single_comm = sypy.GirvanNewmanCommunityGraph(num_comm=1)
         self.null_comm = sypy.GirvanNewmanCommunityGraph(num_comm=0)
 
-    def negative_values(self):
         self.neg_comm_size = sypy.GirvanNewmanCommunityGraph(comm_size=-5)
         self.neg_comm_num = sypy.GirvanNewmanCommunityGraph(num_comm=-5)
 
+    def test_connectivity(self):
+        ok_(nx.is_connected(self.girvan_newman_graph.structure))
 
 class TestLFRCommunityGraph(object):
     """ Tests for TestLFRCommunityGraph class."""
@@ -190,7 +200,7 @@ class TestLFRCommunityGraph(object):
         self.degree_exp = 1.5
         self.mixing_par = 0.075
         self.tries = 3
-        self.seed = 1234
+        self.seed = None
         self.lfr_graph = sypy.LFRCommunityGraph(
             self.num_comm,
             self.max_comm,
@@ -202,18 +212,28 @@ class TestLFRCommunityGraph(object):
             self.seed
         )
 
-    def test_consistency(self):
-        eq_(self.num_comm, self.lfr_graph.num_comm)
-        eq_(self.max_comm, self.lfr_graph.max_comm)
-        eq_(self.comm_exp, self.lfr_graph.comm_exp)
-        eq_(self.max_degree, self.lfr_graph.max_degree)
-        eq_(self.degree_exp, self.lfr_graph.degree_exp)
-        eq_(self.mixing_par, self.lfr_graph.mixing_par)
-        eq_(self.tries, self.lfr_graph.tries)
-        eq_(self.seed, self.lfr_graph.seed)
+    def smoke_test(self):
+        sypy.LFRCommunityGraph()
+        sypy.LFRCommunityGraph(mixing_par=1)
+        sypy.LFRCommunityGraph(0,0,0,0,0,0,0,0)
 
-    def test_order(self):
-        ok_(self.lfr_graph.order() > 0)
+    def test_communities(self):
+        communities = nx.get_node_attributes(
+            self.lfr_graph.structure,
+            "community"
+        )
+        inv_map = {}
+        for k, v in communities.iteritems():
+            inv_map.setdefault(v, []).append(k)
+        eq_(len(inv_map.keys()), self.num_comm)
+        for v in inv_map.values():
+            ok_(len(v) <= self.max_comm)
 
-    def test_size(self):
-        ok_(self.lfr_graph.size() > 0)
+    def test_degree(self):
+        for node, degree in self.lfr_graph.structure.degree_iter():
+            ok_(degree <= self.max_degree)
+
+    def test_connectivity(self):
+        ok_(nx.is_connected(self.lfr_graph.structure))
+
+
