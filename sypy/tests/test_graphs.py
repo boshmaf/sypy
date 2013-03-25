@@ -190,7 +190,7 @@ class TestGirvanNewmanCommunityGraph(object):
     def test_connectivity(self):
         ok_(nx.is_connected(self.girvan_newman_graph.structure))
 
-class TestLFRCommunityGraph(object):
+class TestLFRCommunityGraph():
     """ Tests for TestLFRCommunityGraph class."""
     def setUp(self):
         self.num_comm = 3
