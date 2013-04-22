@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,23 +16,27 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import sys
+sys.path.append("../")
+
 import sypy
+
 
 if __name__ == "__main__":
 
     sybil_region = sypy.Region(
-        graph = sypy.CompleteGraph(num_nodes=100),
+        graph = sypy.CompleteGraph(num_nodes=10000),
         name = "SybilCompleteGraph",
         is_sybil=True
     )
 
+
+    gexf_graph = sypy.ImportedGEXFGraph("datasets/ca-AstroPh.gexf")
+    gexf_graph.lcc_degree_filter()
     honest_region = sypy.Region(
-        graph = sypy.SmallWorldGraph(
-            num_nodes=1000,
-            node_degree=10,
-            rewire_prob=0.8
-        ),
-        name="HonestSmallWorldGraph"
+        graph=gexf_graph,
+        name="HonestRealWorkGraph"
     )
     honest_region.pick_random_honest_nodes(num_nodes=10)
 
@@ -43,10 +47,7 @@ if __name__ == "__main__":
     )
     social_network.random_pair_stitch(num_edges=10)
 
-    detector = sypy.SybilGuardDetector(
-        network=social_network,
-        route_len_scaler=60.0
-    )
+    detector = sypy.SybilRankDetector(social_network)
     results = detector.detect()
     print "Detection performance:"
     print "accuracy={0:.2f}, sensitivity={1:.2f}, specificity={2:.2f}".format(
@@ -55,4 +56,7 @@ if __name__ == "__main__":
         results.specificity()
     )
 
-    social_network.visualize()
+    print "Visualize? [y/n]"
+    answer = raw_input("Enter something: ")
+    if answer == "y":
+        social_network.visualize()

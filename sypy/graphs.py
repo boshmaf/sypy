@@ -76,10 +76,31 @@ class ImportedGEXFGraph(BaseGraph):
             raise Exception("Imported graph is not undirected")
 
         self.structure = nx.convert_node_labels_to_integers(imported_graph)
-        self.__filter()
+        if self.filter_graph:
+            self.__filter()
 
-    def __filter(self):
-        print "Post-import filtering goes here."
+    def lcc_degree_filter(self, num_iterations=3, degree_ratio=0.1):
+        """
+        Keep only the Largest Connected Component (LCC) and try to
+        remove all outlier nodes that have exactly one neighbor
+        """
+
+        cc = nx.connected_component_subgraphs(self.structure)
+        self.structure = max(cc, key=len)
+
+        for trial in xrange(num_iterations):
+            to_remove = []
+            for node in self.structure:
+                if self.structure.degree(node) == 1:
+                    to_remove.append(node)
+
+            current_ratio = len(to_remove)/(float)(self.structure.order())
+            if current_ratio < degree_ratio:
+                break
+
+            for node in to_remove:
+                self.structure.remove_node(node)
+
 
 class ZacharyKarateClubGraph(BaseGraph):
     """
@@ -330,9 +351,3 @@ class LFRCommunityGraph(BaseGraph):
 
         comm_degrees = [int(degree) for degree in (rvs * self.max_degree)]
         return comm_degrees
-
-
-
-
-
-
