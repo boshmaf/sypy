@@ -168,7 +168,7 @@ class BaseSybilDetector(BaseDetector):
 
     def __check_integrity(self):
         if self.seed:
-            random.seed(seed)
+            random.seed(self.seed)
 
         if not self.verifiers:
             self.verifiers = random.sample(

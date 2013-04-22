@@ -1,6 +1,6 @@
 #    SyPy: A Python framework for evaluating graph-based Sybil detection
 #    algorithms in social and information networks.
-#    
+#
 #    Copyright (C) 2013  Yazan Boshmaf
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -60,9 +60,9 @@ class Results:
 
     def sensitivity(self):
         cm = self.confusion_matrix
-        return cm["TP"]/(float)(cm["P"])
+        return cm["TP"]/(float)(cm["TP"]+cm["FN"])
 
     def specificity(self):
         cm = self.confusion_matrix
-        return cm["TN"]/(float)(cm["N"])
+        return cm["TN"]/(float)(cm["FP"]+cm["TN"])
 

@@ -148,16 +148,13 @@ class Stats():
 
         trans_matrix = np.empty(matrix_dim)
         for row in xrange(matrix_dim[0]):
+            node_degree = adj_matrix[row].sum()
+            if node_degree == 0:
+                raise Exception("The graph has disconnected components")
             for col in xrange(matrix_dim[1]):
-                node_degree = adj_matrix[row].sum()
-                if node_degree == 0:
-                     raise Exception("The graph has disconnected components")
-                if adj_matrix[row, col] == 0.0:
-                     trans_matrix[row, col] = 0.0
-                else:
-                    trans_matrix[row,col] = 1/node_degree
+                trans_matrix[row,col] = adj_matrix[row, col]/(float)(node_degree)
 
-        eigen_vals = np.linalg.eig(trans_matrix)[0]
+        eigen_vals = np.linalg.eigvalsh(trans_matrix)
         second_largest = math.fabs(np.sort(eigen_vals)[-2])
 
         upper_bound = (math.log10(structure.order()) +\
