@@ -36,7 +36,7 @@ if __name__ == "__main__":
     gexf_graph.lcc_degree_filter()
     honest_region = sypy.Region(
         graph=gexf_graph,
-        name="HonestRealWorkGraph"
+        name="HonestRealWorldGraph"
     )
     honest_region.pick_random_honest_nodes(num_nodes=10)
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         results.specificity()
     )
 
-    print "Visualize? [y/n]"
-    answer = raw_input("Enter something: ")
+    answer = raw_input("Visualize [y/n]: ")
     if answer == "y":
+        print "This will take sometime..."
         social_network.visualize()
