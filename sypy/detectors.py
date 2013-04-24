@@ -64,15 +64,7 @@ class GenericBCCDetector(BaseDetector):
         return sypy.Results(self)
 
 
-class BaseCommunityDetector(BaseDetector):
-
-    def __init__(self, network, max_level):
-        BaseDetector.__init__(self, network)
-        self.dendogram = nx.DiGraph()
-        self.max_level = max_level
-
-
-class GirvanNewmanCommunityDetector(BaseCommunityDetector):
+class GirvanNewmanCommunityDetector(BaseDetector):
     """
     Implements Girvan-Newman community detection algorithm as described
     in Community Structure in Social and Biological Networks, Girvan et al.
@@ -83,7 +75,9 @@ class GirvanNewmanCommunityDetector(BaseCommunityDetector):
     tightly-knit communities or clusters, as a way to detect Sybils.
     """
     def __init__(self, network, max_level=1):
-        BaseCommunityDetector.__init__(self, network, max_level)
+        BaseDetector.__init__(self, network)
+        self.dendogram = nx.DiGraph()
+        self.max_level = max_level
 
     def detect(self):
         structure = self.network.graph.structure.copy()
@@ -154,6 +148,88 @@ class GirvanNewmanCommunityDetector(BaseCommunityDetector):
             structure,
             sub_structures[right]
         )
+        
+        
+class MisloveSingleCommunityDetector(BaseDetector):
+    """
+    Implements Mislove community detection algorithm as described in You Are
+    Who You Know: Inferring User Profiles in Online Social Networks,
+    Mislove et al., WSDM, 2010.
+    The algorithms 'grows' a community starting with an induced subgraph until
+    maximum normalized conductance is achieved. As a detector, the initial
+    subgraph is a connected component consisting of all known honest nodes.
+    """
+    def __init__(self, network):
+        BaseDetector.__init__(self, network)
+        self.honests_graph = sypy.CustomGraph(
+            self.network.graph.structure.subgraph(self.network.known_honests)
+        )
+
+    def detect(self):
+        self.__grow_community()
+        community = self.honests_graph.nodes()
+
+        self._vote_honests_predicted([community])
+        return sypy.Results(self)
+
+    def __grow_community(self):
+        stats = self.network.get_network_stats()
+        (conductance, edge_cover) = stats.normalized_conductance(
+            self.honests_graph,
+            edge_cover=True
+        )
+
+        max_conductance = conductance
+        while self.honests_graph.size() <= self.network.graph.size():
+            (membership, max_conductance) = self.__get_best_candidate(
+                max_conductance,
+                edge_cover,
+                stats
+            )
+
+            if not membership:
+                break
+
+            self.honests_graph.structure.add_node(membership["node"])
+            self.honests_graph.structure.add_edges_from([membership["edge"]])
+            edge_cover = membership["cover"]
+
+    def __get_best_candidate(self, conductance, edge_cover, stats):
+        membership = {}
+        max_conductance = conductance
+        for (left_node, right_node) in edge_cover:
+            candidate_node = left_node
+            if left_node not in self.honests_graph.structure:
+                candidate_node = right_node
+
+            candidate_edge = (left_node, right_node)
+
+            candidate_graph = sypy.CustomGraph(
+                self.honests_graph.structure.copy()
+            )
+            candidate_graph.structure.add_edges_from([candidate_edge])
+
+            (new_conductance, new_cover) = stats.normalized_conductance(
+                candidate_graph,
+                edge_cover=True
+            )
+
+            if new_conductance > max_conductance:
+                max_conductance = new_conductance
+                membership = {
+                    "node": candidate_node,
+                    "edge": candidate_edge,
+                    "cover": new_cover
+                }
+
+        return (membership, max_conductance)
+
+    def __get_candidate(self, left_node, right_node):
+        edge = (left_node, right_node)
+        if left_node in self.honests_graph.structure:
+            return (left_node, edge)
+
+        return (right_node, edge)
 
 
 class BaseSybilDetector(BaseDetector):
@@ -532,85 +608,3 @@ class SybilLimitDetector(BaseSybilDetector):
             tail_counters[min_index] += 1
 
         return (accepted, tail_counters)
-
-
-class MisloveSingleCommunityDetector(BaseDetector):
-    """
-    Implements Mislove community detection algorithm as described in You Are
-    Who You Know: Inferring User Profiles in Online Social Networks,
-    Mislove et al., WSDM, 2010.
-    The algorithms 'grows' a community starting with an induced subgraph until
-    maximum normalized conductance is achieved. As a detector, the initial
-    subgraph is a connected component consisting of all known honest nodes.
-    """
-    def __init__(self, network):
-        BaseDetector.__init__(self, network)
-        self.honests_graph = sypy.CustomGraph(
-            self.network.graph.structure.subgraph(self.network.known_honests)
-        )
-
-    def detect(self):
-        self.__grow_community()
-        community = self.honests_graph.nodes()
-
-        self._vote_honests_predicted([community])
-        return sypy.Results(self)
-
-    def __grow_community(self):
-        stats = self.network.get_network_stats()
-        (conductance, edge_cover) = stats.normalized_conductance(
-            self.honests_graph,
-            edge_cover=True
-        )
-
-        max_conductance = conductance
-        while self.honests_graph.size() <= self.network.graph.size():
-            (membership, max_conductance) = self.__get_best_candidate(
-                max_conductance,
-                edge_cover,
-                stats
-            )
-
-            if not membership:
-                break
-
-            self.honests_graph.structure.add_node(membership["node"])
-            self.honests_graph.structure.add_edges_from([membership["edge"]])
-            edge_cover = membership["cover"]
-
-    def __get_best_candidate(self, conductance, edge_cover, stats):
-        membership = {}
-        max_conductance = conductance
-        for (left_node, right_node) in edge_cover:
-            candidate_node = left_node
-            if left_node not in self.honests_graph.structure:
-                candidate_node = right_node
-
-            candidate_edge = (left_node, right_node)
-
-            candidate_graph = sypy.CustomGraph(
-                self.honests_graph.structure.copy()
-            )
-            candidate_graph.structure.add_edges_from([candidate_edge])
-
-            (new_conductance, new_cover) = stats.normalized_conductance(
-                candidate_graph,
-                edge_cover=True
-            )
-
-            if new_conductance > max_conductance:
-                max_conductance = new_conductance
-                membership = {
-                    "node": candidate_node,
-                    "edge": candidate_edge,
-                    "cover": new_cover
-                }
-
-        return (membership, max_conductance)
-
-    def __get_candidate(self, left_node, right_node):
-        edge = (left_node, right_node)
-        if left_node in self.honests_graph.structure:
-            return (left_node, edge)
-
-        return (right_node, edge)
