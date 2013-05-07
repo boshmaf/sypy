@@ -84,4 +84,4 @@ SyPy has been tested on a full installation of Ubuntu 12.10.
 
 SyPy started as a research project at the [University of British Columbia](http://www.ece.ubc.ca/) (UBC) by [Yazan Boshmaf](http://ece.ubc.ca/~boshmaf). Latere on, the following people contributed in one way or the other:
 
-* Tony Cheng (UBC) -- Region and network visualization, community detection algorithms.
+* Tony Cheng (UBC) -- Region and network visualization.
