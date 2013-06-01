@@ -74,12 +74,6 @@ SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can 
     network.visualize()
     network.visualize(file_path="/tmp/{0}".format(network.name))
 
-# How to install it?
-
-The first public release (version 0.1.0) is scheduled to be pushed by the end of May, 2013. Then, you can install the latest release of SyPy by issuing either <code>easy_install sypy</code> or <code>pip install sypy</code> (recommended). For now, feel free to fork the project and run the included examples.
-
-SyPy has been tested on a full installation of Ubuntu 12.10.
-
 # Who is working on it?
 
 SyPy started as a research project at the [University of British Columbia](http://www.ece.ubc.ca/) (UBC) by [Yazan Boshmaf](http://ece.ubc.ca/~boshmaf). Latere on, the following people contributed in one way or the other:
