@@ -76,8 +76,6 @@ class ImportedGEXFGraph(BaseGraph):
             raise Exception("Imported graph is not undirected")
 
         self.structure = nx.convert_node_labels_to_integers(imported_graph)
-        if self.filter_graph:
-            self.__filter()
 
     def lcc_degree_filter(self, num_iterations=3, degree_ratio=0.1):
         """
