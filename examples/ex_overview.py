@@ -32,7 +32,7 @@ if __name__ == "__main__":
     )
 
 
-    gexf_graph = sypy.ImportedGEXFGraph("datasets/ca-AstroPh.gexf")
+    gexf_graph = sypy.ImportedGEXFGraph("datasets/ca-HepTh.gexf")
     gexf_graph.lcc_degree_filter()
     honest_region = sypy.Region(
         graph=gexf_graph,
