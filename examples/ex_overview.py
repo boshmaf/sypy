@@ -60,5 +60,5 @@ if __name__ == "__main__":
 
     answer = raw_input("Visualize [y/n]: ")
     if answer == "y":
-        print "This will take sometime..."
+        print "This will take some time..."
         social_network.visualize()
