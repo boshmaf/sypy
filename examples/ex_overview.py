@@ -26,17 +26,19 @@ import sypy
 if __name__ == "__main__":
 
     sybil_region = sypy.Region(
-        graph = sypy.CompleteGraph(num_nodes=10000),
+        graph = sypy.CompleteGraph(num_nodes=1000),
         name = "SybilCompleteGraph",
         is_sybil=True
     )
 
 
-    gexf_graph = sypy.ImportedGEXFGraph("datasets/ca-HepTh.gexf")
-    gexf_graph.lcc_degree_filter()
     honest_region = sypy.Region(
-        graph=gexf_graph,
-        name="HonestRealWorldGraph"
+        graph=sypy.PowerLawGraph(
+            num_nodes=1000,
+            node_degree=10,
+            prob_triad=0.5
+        ),
+        name="HonestPowerLawGraph"
     )
     honest_region.pick_random_honest_nodes(num_nodes=10)
 
