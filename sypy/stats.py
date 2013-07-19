@@ -438,7 +438,7 @@ class Stats():
         return num_shared
 
     def __get_best_partitioning(self, dendogram, relabel=True):
-        max_modularity = 0.0
+        max_modularity = -0.5
         best_comms = {}
         stats = self.graph.get_graph_stats()
         for level, comms in dendogram.iteritems():
