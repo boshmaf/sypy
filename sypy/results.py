@@ -34,7 +34,13 @@ class Results:
                 set(self.honests_predicted)
             )
         )
-        FN = N - TN
+        
+        FN = len(
+            set.intersection(
+                set(self.honests_predicted),
+                (set(self.nodes) - set(self.honests_truth))
+            )
+        )
 
         TP = len(
             set.intersection(
@@ -42,8 +48,14 @@ class Results:
                 (set(self.nodes) - set(self.honests_predicted))
             )
         )
-        FP = P - TP
-
+        
+        FP = len(
+            set.intersection(
+                set(self.honests_truth),
+                (set(self.nodes) - set(self.honests_predicted))
+            )
+        )
+        
         confusion_matrix = {
             "N": N,
             "P": P,
