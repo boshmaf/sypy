@@ -345,12 +345,13 @@ class SybilPredictDetector(BaseSybilDetector):
     on every community, which is similar to SybilRank.
     """
     def __init__(self, network, total_trust=1.0, verifiers=None, pivot=0.1,
-            seed=None, num_iterations_scaler=1.0, potentials=None):
+            seed=None, num_iterations_scaler=1.0, potentials=None, reset_net=True):
         BaseSybilDetector.__init__(self, network, verifiers, seed)
         self.total_trust = total_trust
         self.pivot = pivot
         self.num_iterations_scaler = num_iterations_scaler
         self.potentials = potentials
+        self.reset_network = reset_net
         self.__setup_network()
 
     def __setup_network(self):
@@ -359,17 +360,27 @@ class SybilPredictDetector(BaseSybilDetector):
                 (node, 0.0) for node in self.network.graph.nodes()
             )
 
-        self.network.graph.structure = nx.MultiGraph(self.network.graph.structure)
-
         for node in self.network.graph.nodes():
-            if self.potentials[node] == 0.0 or self.potentials[node] == 1.0:
-                continue
-            node_degree = self.network.graph.structure.degree(node)
-            num_selfloops = math.ceil(
-                ( (1.0 - self.potentials[node]) * node_degree ) / float(2)
-            )
-            selfloops = [(node, node)] * int(num_selfloops)
-            self.network.graph.structure.add_edges_from(selfloops)
+            neighbors = self.network.graph.structure.neighbors(node)
+            for neighbor in neighbors:
+                if "weight" in self.network.graph.structure[node][neighbor]:
+                    self.network.graph.structure[node][neighbor]["weight"] *=\
+                        (1.0 - self.potentials[node])
+                else:
+                    self.network.graph.structure[node][neighbor]["weight"] =\
+                        (1.0 - self.potentials[node])
+        # degree will count selfloop weight twice, hence we divide by 2.0
+        for node in self.network.graph.nodes():
+            node_weight = self.network.graph.structure.degree(node, weight="weight")
+            selfloop_weight = node_weight / 2.0
+            self.network.graph.structure.add_edge(node, node, weight=selfloop_weight)
+
+    def __reset_network(self):
+        for node in self.network.graph.nodes():
+            neighbors = self.network.graph.structure.neighbors(node)
+            for neighbor in neighbors:
+                self.network.graph.structure[node][neighbor] = {}
+            self.network.graph.structure.remove_edge(node, node)
 
     def detect(self):
         num_iterations = math.log10(
@@ -390,7 +401,9 @@ class SybilPredictDetector(BaseSybilDetector):
             honest_node for honest_node, trust in ranked_trust[pivot_mark+1:]
         ]
         self._vote_honests_predicted([verified_honests])
-        self.network.graph.structure = nx.Graph(self.network.graph.structure)
+
+        if self.reset_network:
+            self.__reset_network(self)
 
         return sypy.Results(self)
 
@@ -413,8 +426,8 @@ class SybilPredictDetector(BaseSybilDetector):
             )
 
             for neighbor in neighbors:
-                neighbor_degree = self.network.graph.structure.degree(neighbor)
-                new_trust += network_trust[neighbor] / (float)(neighbor_degree)
+                neighbor_weight = self.network.graph.structure.degree(neighbor, weight="weight")
+                new_trust += network_trust[neighbor] / (float)(neighbor_weight)
 
             updated_trust[node] = new_trust
 
@@ -422,8 +435,8 @@ class SybilPredictDetector(BaseSybilDetector):
 
     def __normalize_and_rank_network_trust(self, network_trust):
         for node, trust in network_trust.iteritems():
-            node_degree = self.network.graph.structure.degree(node)
-            network_trust[node] = trust / (float)(node_degree)
+            node_weight = self.network.graph.structure.degree(node, weight="weight")
+            network_trust[node] = trust / (float)(node_weight)
 
         ranked_trust = sorted(
             network_trust.iteritems(),
