@@ -148,8 +148,8 @@ class GirvanNewmanCommunityDetector(BaseDetector):
             structure,
             sub_structures[right]
         )
-        
-        
+
+
 class MisloveSingleCommunityDetector(BaseDetector):
     """
     Implements Mislove community detection algorithm as described in You Are
@@ -266,11 +266,12 @@ class SybilRankDetector(BaseSybilDetector):
     by applying Louvain community detection algorithm and running SybilRank
     on every community, as described in the paper.
     """
-    def __init__(self, network, verifiers=None, pivot=0.1, seed=None,
-            num_iterations_scaler=1.0):
+    def __init__(self, network, total_trust=1.0, verifiers=None, pivot=0.1,
+            seed=None, num_iterations_scaler=1.0):
         BaseSybilDetector.__init__(self, network, verifiers, seed)
         self.pivot = pivot
         self.num_iterations_scaler = num_iterations_scaler
+        self.total_trust = total_trust
 
     def detect(self):
         num_iterations = math.log10(
@@ -300,7 +301,106 @@ class SybilRankDetector(BaseSybilDetector):
         )
 
         for verifier in self.verifiers:
-            network_trust[verifier] = 1.0 / (float)( len(self.verifiers) )
+            network_trust[verifier] = self.total_trust / (float)( len(self.verifiers) )
+
+        return network_trust
+
+    def __propagate_network_trust(self, network_trust):
+        updated_trust = {}
+        for node, trust in network_trust.iteritems():
+            new_trust = 0.0
+            neighbors = list(
+                set(self.network.graph.structure.neighbors(node)) - set([node])
+            )
+
+            for neighbor in neighbors:
+                neighbor_degree = self.network.graph.structure.degree(neighbor)
+                new_trust += network_trust[neighbor] / (float)(neighbor_degree)
+
+            updated_trust[node] = new_trust
+
+        return updated_trust
+
+    def __normalize_and_rank_network_trust(self, network_trust):
+        for node, trust in network_trust.iteritems():
+            node_degree = self.network.graph.structure.degree(node)
+            network_trust[node] = trust / (float)(node_degree)
+
+        ranked_trust = sorted(
+            network_trust.iteritems(),
+            key=operator.itemgetter(1)
+        )
+
+        return ranked_trust
+
+
+class SybilPredictDetector(BaseSybilDetector):
+    """
+    Implements a centralized version of the SybilPredict protocol as described
+    in Aiding Fake Account Detection in OSNs by Predicting Potential Victims,
+    Boshmaf et al. (unpublished, yet.)
+    This implementation assumes a single-community honest region. The case
+    of multi-community structure can be reduced to a single-community structure
+    by applying Louvain community detection algorithm and running SybilPredict
+    on every community, which is similar to SybilRank.
+    """
+    def __init__(self, network, total_trust=1.0, verifiers=None, pivot=0.1,
+            seed=None, num_iterations_scaler=1.0, potentials=None):
+        BaseSybilDetector.__init__(self, network, verifiers, seed)
+        self.total_trust = total_trust
+        self.pivot = pivot
+        self.num_iterations_scaler = num_iterations_scaler
+        self.potentials = potentials
+        self.__setup_network()
+
+    def __setup_network(self):
+        if not self.potentials:
+            self.potentials = dict(
+                (node, 0.0) for node in self.network.graph.nodes()
+            )
+
+        self.network.graph.structure = nx.MultiGraph(self.network.graph.structure)
+
+        for node in self.network.graph.nodes():
+            if self.potentials[node] == 0.0 or self.potentials[node] == 1.0:
+                continue
+            node_degree = self.network.graph.structure.degree(node)
+            num_selfloops = math.ceil(
+                ( (1.0 - self.potentials[node]) * node_degree ) / float(2)
+            )
+            selfloops = [(node, node)] * int(num_selfloops)
+            self.network.graph.structure.add_edges_from(selfloops)
+
+    def detect(self):
+        num_iterations = math.log10(
+            self.network.graph.order()
+        ) * self.num_iterations_scaler
+        num_iterations = (int)(math.ceil(num_iterations))
+
+        network_trust = self.__initialize_network_trust()
+
+        while num_iterations != 0:
+            network_trust = self.__propagate_network_trust(network_trust)
+            num_iterations = num_iterations - 1
+
+        ranked_trust = self.__normalize_and_rank_network_trust(network_trust)
+
+        pivot_mark = (int)(self.pivot * len(ranked_trust))
+        verified_honests = [
+            honest_node for honest_node, trust in ranked_trust[pivot_mark+1:]
+        ]
+        self._vote_honests_predicted([verified_honests])
+        self.network.graph.structure = nx.Graph(self.network.graph.structure)
+
+        return sypy.Results(self)
+
+    def __initialize_network_trust(self):
+        network_trust = dict(
+            (node, 0.0) for node in self.network.graph.nodes()
+        )
+
+        for verifier in self.verifiers:
+            network_trust[verifier] = self.total_trust / (float)( len(self.verifiers) )
 
         return network_trust
 
