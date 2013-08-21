@@ -62,6 +62,7 @@ if __name__ == "__main__":
     )
     roc_benchmark.run()
     roc_benchmark.plot(file_name="roc_curve")
+    
     auc = roc_benchmark.roc_curve["auc"]
     print "Benchmark results: AUC={0:.2f}".format(auc)
 
