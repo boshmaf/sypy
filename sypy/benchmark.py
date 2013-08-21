@@ -26,7 +26,6 @@ class BaseDetectorBenchmark:
     def __init__(self, detector, runs):
         self.detector = detector
         self.runs = runs
-        self.bench_results = {}
 
     def __check_integrity(self):
         if not isinstance(self.detector, sypy.BaseDetector):
@@ -35,41 +34,38 @@ class BaseDetectorBenchmark:
     def start(self):
         raise NotImplementedError("This method is not supported")
 
-class SimpleDetectorBenchmark(BaseDetectorBenchmark):
-
-    def __init__(self, detector, arg_name, arg_values, runs=1):
+class RocDetectorBenchmark(BaseDetectorBenchmark):
+    """
+    Benchmarks the detector using ROC analysis over a given detection
+    threshold and computes the corresponding area under curve (AUC).
+    """
+    def __init__(self, detector, threshold, runs=1):
         BaseDetectorBenchmark.__init__(self, detector, runs)
-        self.arg_name = arg_name
-        self.arg_values = arg_values
+        self.threshold = threshold
+        self.roc_curve = {}
 
     def run(self):
-        for arg_value in self.arg_values:
-            setattr(self.detector, self.arg_name, arg_value)
+        threshold_values = [ i/10.0 for i in xrange(0,11) ]
+
+        threshold_results = {}
+        for value in threshold_values:
+            setattr(self.detector, self.threshold, value)
             results = self.detector.detect()
-            self.bench_results[arg_value] = results
+            threshold_results[value] = results
 
-    def roc_analysis(self, plot=True, file_name=None, file_type="pdf", font_size=18):
-        if not self.bench_results:
-            raise Exception("Run the benchmark first.")
+        self.__analyze(threshold_results)
 
-        operating_values = sorted(self.bench_results.keys())
-        if min(operating_values) != 0.0 or max(operating_values) != 1.0:
-            raise Exception("Invalid argument value range.")
-
+    def __analyze(self, threshold_results):
         tpr = []
         fpr = []
-        for value in operating_values:
-            tpr.append( self.bench_results[value].sensitivity() )
-            fpr.append( 1.0 - self.bench_results[value].specificity() )
+        for value in sorted(threshold_results.keys()):
+            tpr.append( threshold_results[value].sensitivity() )
+            fpr.append( 1.0 - threshold_results[value].specificity() )
 
-        auc = self.__compute_auc(fpr, tpr)
-        if plot:
-            self.__plot_roc(fpr, tpr, auc, file_name, file_type, font_size)
-
-        data = [ (fpr[i], tpr[i]) for i in range(0, len(fpr)) ]
         self.roc_curve = {
-            "data": data,
-            "auc": auc
+            "fpr": fpr,
+            "tpr": tpr,
+            "auc": self.__compute_auc(fpr, tpr)
         }
 
     def __compute_auc(self, x, y, reorder=False):
@@ -94,14 +90,17 @@ class SimpleDetectorBenchmark(BaseDetectorBenchmark):
         area = direction * np.trapz(y, x)
         return area
 
-    def __plot_roc(self, fpr, tpr, auc, file_name, file_format, font_size):
+    def plot(self, file_name=None, file_format="pdf", font_size=18):
+        auc = self.roc_curve["auc"]
+        fpr = self.roc_curve["fpr"]
+        tpr = self.roc_curve["tpr"]
+        name = self.detector.__class__.__name__
+
         fig = plt.figure()
-        fig.suptitle("auc={0:.2f}, threshold={1}".format(auc, self.arg_name))
+        fig.suptitle("auc={0:.2f}, threshold={1}".format(auc, self.threshold))
 
         ax = fig.add_subplot(111)
         matplotlib.rcParams.update({"font.size": font_size})
-
-        name = self.detector.__class__.__name__
 
         plt.xlim([-0.05, 1.05])
         plt.ylim([-0.05, 1.05])

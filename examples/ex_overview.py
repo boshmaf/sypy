@@ -58,13 +58,12 @@ if __name__ == "__main__":
 
     detector = sypy.SybilPredictDetector(social_network)
 
-    benchmark = sypy.SimpleDetectorBenchmark(
-        detector=detector,
-        arg_name="pivot",
-        arg_values=[i/10.0 for i in range(0, 11)]
+    benchmark = sypy.RocDetectorBenchmark(
+        detector=sypy.SybilPredictDetector(social_network),
+        threshold="pivot",
     )
     benchmark.run()
-    benchmark.roc_analysis()
+    benchmark.plot(file_name="roc_curve")
     print "Benchmark results: AUC={0:.2f}".format(benchmark.roc_curve["auc"])
 
     answer = raw_input("Visualize [y/n]: ")
