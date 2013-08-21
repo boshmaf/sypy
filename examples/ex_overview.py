@@ -64,9 +64,10 @@ if __name__ == "__main__":
         arg_values=[i/10.0 for i in range(0, 11)]
     )
     benchmark.run()
-    benchmark.roc_curve()
+    benchmark.roc_analysis()
+    print "Benchmark results: AUC={0:.2f}".format(benchmark.roc_curve["auc"])
 
-    answer = raw_input("\nVisualize [y/n]: ")
+    answer = raw_input("Visualize [y/n]: ")
     if answer == "y":
         print "This will take some time..."
         social_network.visualize()
