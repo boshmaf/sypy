@@ -23,44 +23,45 @@ import matplotlib.pyplot as plt
 
 class BaseDetectorBenchmark:
 
-    def __init__(self, detector, runs):
+    def __init__(self, detector):
         self.detector = detector
-        self.runs = runs
 
     def __check_integrity(self):
         if not isinstance(self.detector, sypy.BaseDetector):
             raise Exception("Invalid detector")
 
-    def start(self):
+    def run(self):
         raise NotImplementedError("This method is not supported")
 
 class RocDetectorBenchmark(BaseDetectorBenchmark):
     """
     Benchmarks the detector using ROC analysis over a given detection
-    threshold and computes the corresponding area under curve (AUC).
+    threshold and its values. It also computes the curve's AUC.
     """
-    def __init__(self, detector, threshold, runs=1):
-        BaseDetectorBenchmark.__init__(self, detector, runs)
+    def __init__(self, detector, threshold, values=None):
+        BaseDetectorBenchmark.__init__(self, detector)
         self.threshold = threshold
+
+        self.values = values
+        if not self.values:
+            self.values = [ i/10.0 for i in xrange(0,11) ]
+
         self.roc_curve = {}
 
     def run(self):
-        threshold_values = [ i/10.0 for i in xrange(0,11) ]
-
-        threshold_results = {}
-        for value in threshold_values:
+        results = {}
+        for value in self.values:
             setattr(self.detector, self.threshold, value)
-            results = self.detector.detect()
-            threshold_results[value] = results
+            results[value] = self.detector.detect()
 
-        self.__analyze(threshold_results)
+        self.__analyze(results)
 
-    def __analyze(self, threshold_results):
+    def __analyze(self, results):
         tpr = []
         fpr = []
-        for value in sorted(threshold_results.keys()):
-            tpr.append( threshold_results[value].sensitivity() )
-            fpr.append( 1.0 - threshold_results[value].specificity() )
+        for value in sorted(results.keys()):
+            tpr.append( results[value].sensitivity() )
+            fpr.append( 1.0 - results[value].specificity() )
 
         self.roc_curve = {
             "fpr": fpr,
