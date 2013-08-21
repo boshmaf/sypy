@@ -380,7 +380,8 @@ class SybilPredictDetector(BaseSybilDetector):
             neighbors = self.network.graph.structure.neighbors(node)
             for neighbor in neighbors:
                 self.network.graph.structure[node][neighbor] = {}
-            self.network.graph.structure.remove_edge(node, node)
+            if self.network.graph.structure.has_edge(node, node):
+                self.network.graph.structure.remove_edge(node, node)
 
     def detect(self):
         num_iterations = math.log10(
@@ -403,7 +404,7 @@ class SybilPredictDetector(BaseSybilDetector):
         self._vote_honests_predicted([verified_honests])
 
         if self.reset_network:
-            self.__reset_network(self)
+            self.__reset_network()
 
         return sypy.Results(self)
 

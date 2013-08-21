@@ -26,21 +26,28 @@ import sypy
 if __name__ == "__main__":
 
     sybil_region = sypy.Region(
-        graph = sypy.CompleteGraph(num_nodes=1000),
+        graph = sypy.PowerLawGraph(
+            num_nodes=1000,
+            node_degree=4,
+            prob_triad=0.75
+        ),
         name = "SybilCompleteGraph",
         is_sybil=True
     )
-
+    sybil_stats = sybil_region.get_region_stats()
+    assert sybil_stats.is_connected == True
 
     honest_region = sypy.Region(
         graph=sypy.PowerLawGraph(
             num_nodes=1000,
-            node_degree=10,
-            prob_triad=0.5
+            node_degree=4,
+            prob_triad=0.75
         ),
         name="HonestPowerLawGraph"
     )
     honest_region.pick_random_honest_nodes(num_nodes=10)
+    honest_stats = honest_region.get_region_stats()
+    assert honest_stats.is_connected == True
 
     social_network = sypy.Network(
         left_region=honest_region,
@@ -49,16 +56,17 @@ if __name__ == "__main__":
     )
     social_network.random_pair_stitch(num_edges=10)
 
-    detector = sypy.SybilRankDetector(social_network)
-    results = detector.detect()
-    print "Detection performance:"
-    print "accuracy={0:.2f}, sensitivity={1:.2f}, specificity={2:.2f}".format(
-        results.accuracy(),
-        results.sensitivity(),
-        results.specificity()
-    )
+    detector = sypy.SybilPredictDetector(social_network)
 
-    answer = raw_input("Visualize [y/n]: ")
+    benchmark = sypy.SimpleDetectorBenchmark(
+        detector=detector,
+        arg_name="pivot",
+        arg_values=[i/10.0 for i in range(0, 11)]
+    )
+    benchmark.run()
+    benchmark.roc_curve()
+
+    answer = raw_input("\nVisualize [y/n]: ")
     if answer == "y":
         print "This will take some time..."
         social_network.visualize()

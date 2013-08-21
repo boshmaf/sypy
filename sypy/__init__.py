@@ -26,3 +26,4 @@ from networks import *
 from detectors import *
 from stats import *
 from results import *
+from benchmark import *
