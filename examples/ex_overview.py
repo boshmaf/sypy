@@ -56,15 +56,14 @@ if __name__ == "__main__":
     )
     social_network.random_pair_stitch(num_edges=10)
 
-    detector = sypy.SybilPredictDetector(social_network)
-
-    benchmark = sypy.RocDetectorBenchmark(
+    roc_benchmark = sypy.RocAnalysisBenchmark(
         detector=sypy.SybilPredictDetector(social_network),
         threshold="pivot",
     )
-    benchmark.run()
-    benchmark.plot(file_name="roc_curve")
-    print "Benchmark results: AUC={0:.2f}".format(benchmark.roc_curve["auc"])
+    roc_benchmark.run()
+    roc_benchmark.plot(file_name="roc_curve")
+    auc = roc_benchmark.roc_curve["auc"]
+    print "Benchmark results: AUC={0:.2f}".format(auc)
 
     answer = raw_input("Visualize [y/n]: ")
     if answer == "y":

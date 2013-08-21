@@ -21,7 +21,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-class BaseDetectorBenchmark:
+class BaseBenchmark:
 
     def __init__(self, detector):
         self.detector = detector
@@ -33,13 +33,13 @@ class BaseDetectorBenchmark:
     def run(self):
         raise NotImplementedError("This method is not supported")
 
-class RocDetectorBenchmark(BaseDetectorBenchmark):
+class RocAnalysisBenchmark(BaseBenchmark):
     """
-    Benchmarks the detector using ROC analysis over a given detection
+    Benchmarks a detector using ROC analysis over a given detection
     threshold and its values. It also computes the curve's AUC.
     """
     def __init__(self, detector, threshold, values=None):
-        BaseDetectorBenchmark.__init__(self, detector)
+        BaseBenchmark.__init__(self, detector)
         self.threshold = threshold
 
         self.values = values
