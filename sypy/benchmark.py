@@ -109,12 +109,62 @@ class SimpleDetectorBenchmark:
         )
 
 
+class CompositeDetectorsBenchmark:
+    """
+    A compisition of multiple SimpleDetectorBenchmark objects with the
+    advatange of having a single plot for all benchmarked detectors
+    """
+    def __init__(self, simple_benchmarks):
+        self.simple_benchmarks = simple_benchmarks
+
+    def run(self):
+        for benchmark in self.simple_benchmarks:
+            benchmark.run()
+
+    def plot_curve(self, file_name=None, file_format="pdf", font_size=18)
+        data = {}
+        data["Random"] = {
+            "x_data": [0, 1],
+            "y_data": [0,1]
+        }
+
+        for benchmark in self.simple_benchmarks:
+            name = benchmark.detector.__class__.__name__
+            data[name] = {
+                "x_data": benchmark.curve["fpr"],
+                "y_data": benchmark.curve["tpr"]
+            }
+
+        plotter = DetectorBenchmarkPlotter(
+            data,
+            file_name,
+            file_format
+        )
+        plotter._plot(
+            x_label="False positive rate",
+            y_label="True positive rate",
+            legend_loc="lower right"
+         )
+
+
 class MultipleDetectorsBenchmark:
-    def __init__(self, detectors, network, thresholds, values=None, seed=None):
+    """
+    A hybrid of the first two classes. This benchmark allows you to specify
+    the detectors and benchmark them using the same network configuration
+    but still allows you to pass custom keyword arguments to each detector.
+    The order of the detectors in the list is important. There is a one-to-one
+    mapping between the indexes across all list-typed arguments.
+    """
+    def __init__(self, detectors, network, thresholds, values=None, seed=None,
+            kwargs=None):
         self.detectors = detectors
         self.network = network
         self.seed = seed
         self.benchmarks = []
+
+        self.kwargs = kwargs
+        if len(self.kwargs) != len(self.detectors):
+            raise Exception("Invalid number of kwargs")
 
         self.thresholds = thresholds
         if len(self.thresholds) != len(self.detectors):
@@ -126,7 +176,11 @@ class MultipleDetectorsBenchmark:
 
     def run(self):
         for index, detector_class in enumerate(self.detectors):
-            detector = detector_class(self.network, seed=self.seed)
+            detector = detector_class(
+                self.network,
+                seed=self.seed,
+                **self.kwargs[index]
+            )
             benchmark = SimpleDetectorBenchmark(
                 detector,
                 self.thresholds[index],
@@ -165,6 +219,12 @@ class MultipleDetectorsBenchmark:
 
 
 class DetectorBenchmarkPlotter:
+    """
+    Plots the results of any type of benchmark to the display or to a file.
+    It allows you to customize the figure. To be called from a class function
+    only. Do not instantiate externally. Use the plot_curve() funtion of the
+    benchmark of your choice instead.
+    """
     def __init__(self, data, file_name, file_format, font_size=18):
         self.data = data
         self.file_name = file_name
@@ -227,13 +287,28 @@ class DetectorBenchmarkPlotter:
 
 
 class AttackEdgesDetectorsBenchmark:
-    def __init__(self, multi_benchmark, values):
+    """
+    An advanced bechmark that allows you to evaluate the detectors against
+    a the number of attack edges in the network, which is a variable
+    external to the configuration of the detectors.
+    The detectors are benchmarked using a MultipleDetectorsBenchmark
+    object for every passed number of attack edges (i.e., the values).
+    The output is a curve comparing the number of attack edges to the
+    standard AUC of the detectors.
+    """
+    def __init__(self, multi_benchmark, values=None):
         self.multi_benchmark = multi_benchmark
         if not isinstance(self.multi_benchmark, MultipleDetectorsBenchmark):
             raise Exception("Invalid detector benchmark")
         self.multi_benchmark.clear()
 
         self.values = values
+        if not self.values:
+            left = len(self.multi_benchmark.network.left_region.graph.nodes())
+            right = len(self.multi_benchmark.network.right_region.graph.nodes())
+            max_edges = 2 * (left + right)
+            values = [1] + [ i*100 for i in range(1, (max_edges/100)+1) ]
+
         self.curves = {}
         for detector in self.multi_benchmark.detectors:
             name = detector.__name__
