@@ -18,35 +18,31 @@
 
 import sypy
 import numpy as np
+import math
 import matplotlib
 import matplotlib.pyplot as plt
 
-class BaseBenchmark:
-
-    def __init__(self, detector):
-        self.detector = detector
-
-    def __check_integrity(self):
-        if not isinstance(self.detector, sypy.BaseDetector):
-            raise Exception("Invalid detector")
-
-    def run(self):
-        raise NotImplementedError("This method is not supported")
-
-class RocAnalysisBenchmark(BaseBenchmark):
+class SimpleDetectorBenchmark:
     """
     Benchmarks a detector using ROC analysis over a given detection
     threshold and its values. It also computes the curve's AUC.
     """
     def __init__(self, detector, threshold, values=None):
-        BaseBenchmark.__init__(self, detector)
+        self.detector = detector
+        if not isinstance(self.detector, sypy.BaseDetector):
+            raise Exception("Invalid detector")
+
         self.threshold = threshold
 
         self.values = values
         if not self.values:
             self.values = [ i/10.0 for i in xrange(0,11) ]
 
-        self.roc_curve = {}
+        self.curve = {
+            "fpr": [],
+            "tpr": [],
+            "auc": 0.0
+        }
 
     def run(self):
         results = {}
@@ -63,63 +59,229 @@ class RocAnalysisBenchmark(BaseBenchmark):
             tpr.append( results[value].sensitivity() )
             fpr.append( 1.0 - results[value].specificity() )
 
-        self.roc_curve = {
-            "fpr": fpr,
-            "tpr": tpr,
-            "auc": self.__compute_auc(fpr, tpr)
-        }
+        self.curve["fpr"] = fpr
+        self.curve["tpr"] = tpr
 
-    def __compute_auc(self, x, y, reorder=False):
+        self.__compute_auc()
+
+    def __compute_auc(self):
         """
         Computes the AUC using the trapezoidal rule.
         """
-        if len(x) < 2 or len(y) < 2:
+        fpr = self.curve["fpr"]
+        tpr = self.curve["tpr"]
+
+        if len(fpr) < 2 or len(tpr) < 2:
             raise Exception("Invalid number of data points")
 
         direction = 1
-        if reorder:
-            order = np.lexsort((y, x))
-            x, y = x[order], y[order]
-        else:
-            dx = np.diff(x)
-            if np.any(dx < 0):
-                if np.all(dx <= 0):
-                    direction = -1
-                else:
-                    raise Exception("Data points need to be reordered.")
+        diff = np.diff(fpr)
+        if np.any(diff < 0):
+            if np.all(diff <= 0):
+                direction = -1
+            else:
+                raise Exception("Invalid data points order")
 
-        area = direction * np.trapz(y, x)
-        return area
+        self.curve["auc"] = direction * np.trapz(tpr, fpr)
 
-    def plot(self, file_name=None, file_format="pdf", font_size=18):
-        auc = self.roc_curve["auc"]
-        fpr = self.roc_curve["fpr"]
-        tpr = self.roc_curve["tpr"]
+    def plot_curve(self, file_name=None, file_format="pdf", font_size=18):
+        data ={}
+        data["Random"] = {
+            "x_data": [0, 1],
+            "y_data": [0, 1]
+        }
+
         name = self.detector.__class__.__name__
+        data[name] = {
+            "x_data": self.curve["fpr"],
+            "y_data": self.curve["tpr"]
+        }
 
-        fig = plt.figure()
-        fig.suptitle("auc={0:.2f}, threshold={1}".format(auc, self.threshold))
+        plotter = DetectorBenchmarkPlotter(
+            data,
+            file_name,
+            file_format
+        )
+        plotter._plot(
+            x_label="False positive rate",
+            y_label="True positive rate",
+            legend_loc="lower right"
+        )
 
-        ax = fig.add_subplot(111)
-        matplotlib.rcParams.update({"font.size": font_size})
 
-        plt.xlim([-0.05, 1.05])
-        plt.ylim([-0.05, 1.05])
+class MultipleDetectorsBenchmark:
+    def __init__(self, detectors, network, thresholds, values=None, seed=None):
+        self.detectors = detectors
+        self.network = network
+        self.seed = seed
+        self.benchmarks = []
 
-        plt.plot([0, 1], [0, 1], "k--", lw=3, label="Random")
-        plt.plot(fpr, tpr, lw=3, label=name)
+        self.thresholds = thresholds
+        if len(self.thresholds) != len(self.detectors):
+            raise Exception("Invalid number of thresholds")
 
-        plt.xlabel("False positive rate")
-        plt.ylabel("True positive rate")
-        plt.legend(loc="lower right", prop={"size":font_size})
+        self.values = values
+        if not self.values:
+            self.values = [ [i/10.0 for i in xrange(0,11)] ]*len(self.detectors)
 
-        if file_name:
-            plt.savefig(
-                "{0}.{1}".format(file_name, file_format),
-                format=file_format
+    def run(self):
+        for index, detector_class in enumerate(self.detectors):
+            detector = detector_class(self.network, seed=self.seed)
+            benchmark = SimpleDetectorBenchmark(
+                detector,
+                self.thresholds[index],
+                self.values[index]
+            )
+            benchmark.run()
+            self.benchmarks.append(benchmark)
+
+    def clear(self):
+        self.benchmarks = []
+
+    def plot_curve(self, file_name=None, file_format="pdf", font_size=18):
+        data = {}
+        for benchmark in self.benchmarks:
+            name = benchmark.detector.__class__.__name__
+            data[name] = {
+                "x_data": benchmark.curve["fpr"],
+                "y_data": benchmark.curve["tpr"]
+            }
+
+        data["Random"] = {
+            "x_data": [0, 1],
+            "y_data": [0, 1]
+        }
+
+        plotter = DetectorBenchmarkPlotter(
+            data,
+            file_name,
+            file_format
+        )
+        plotter._plot(
+            x_label="False positive rate",
+            y_label="True positive rate",
+            legend_loc="lower right"
+        )
+
+
+class DetectorBenchmarkPlotter:
+    def __init__(self, data, file_name, file_format, font_size=18):
+        self.data = data
+        self.file_name = file_name
+        self.file_format = file_format
+        self.font_size = font_size
+
+        self.__setup_figure()
+
+    def __setup_figure(self):
+        self.figure = plt.figure()
+        self.axis = self.figure.add_subplot(111)
+        matplotlib.rcParams.update(
+            {"font.size": self.font_size}
+        )
+
+    def _plot(self, x_label, y_label, x_lim=[-0.05, 1.05], y_lim=[-0.05, 1.05],
+            line_width=3, baseline_label="Random", legend_loc=None):
+        self.axis.set_xlim(x_lim)
+        self.axis.set_ylim(y_lim)
+
+        self.axis.set_xlabel(x_label)
+        self.axis.set_ylabel(y_label)
+
+        if baseline_label in self.data:
+            baseline = self.data[baseline_label]
+            self.axis.plot(
+                baseline["x_data"],
+                baseline["y_data"],
+                "k--",
+                linewidth=line_width,
+                label=baseline_label
+            )
+
+        for name in self.data:
+            if name == baseline_label:
+                continue
+
+            dataset = self.data[name]
+            self.axis.plot(
+                dataset["x_data"],
+                dataset["y_data"],
+                linewidth=line_width,
+                label=name
+            )
+
+        if legend_loc:
+            self.axis.legend(
+                loc=legend_loc,
+                prop={"size":self.font_size}
+            )
+
+        if self.file_name:
+            self.figure.savefig(
+                "{0}.{1}".format(self.file_name, self.file_format),
+                format=self.file_format
             )
             plt.clf()
         else:
             plt.show()
+
+
+class AttackEdgesDetectorsBenchmark:
+    def __init__(self, multi_benchmark, values):
+        self.multi_benchmark = multi_benchmark
+        if not isinstance(self.multi_benchmark, MultipleDetectorsBenchmark):
+            raise Exception("Invalid detector benchmark")
+        self.multi_benchmark.clear()
+
+        self.values = values
+        self.curves = {}
+        for detector in self.multi_benchmark.detectors:
+            name = detector.__name__
+            self.curves[name] = {
+                "auc": [],
+                "num_edges": []
+            }
+
+    def run(self):
+        for value in sorted(self.values):
+            self.multi_benchmark.network.reset(
+                num_edges=value,
+                seed=self.multi_benchmark.seed
+            )
+            self.multi_benchmark.run()
+            for benchmark in self.multi_benchmark.benchmarks:
+                name = benchmark.detector.__class__.__name__
+                curve = self.curves[name]
+                curve["auc"] += [ benchmark.curve["auc"] ]
+                curve["num_edges"] += [value]
+            self.multi_benchmark.clear()
+
+    def plot_curve(self, file_name=None, file_format="pdf", font_size=18):
+        data = {}
+        data["Random"] = {
+            "x_data": [min(self.values), max(self.values)],
+            "y_data": [0.5, 0.5]
+        }
+
+        for name in self.curves:
+            dataset = self.curves[name]
+            data[name] = {
+                "x_data": dataset["num_edges"],
+                "y_data": dataset["auc"]
+            }
+
+        plotter = DetectorBenchmarkPlotter(
+            data,
+            file_name,
+            file_format
+        )
+
+        plotter._plot(
+            x_label="Number of attack edges",
+            y_label="Area under ROC curve",
+            x_lim=[min(self.values) - 1, max(self.values) + 1],
+            legend_loc="lower right"
+        )
+
 
 

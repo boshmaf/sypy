@@ -35,6 +35,13 @@ class Network:
         self.is_stitched = False
         self.attack_edges = []
 
+    def reset(self, num_edges, seed=None):
+        self.graph = self.__setup_network_graph()
+        self.known_honests = []
+        self.is_stitched = False
+        self.attack_edges = []
+        self.random_pair_stitch(num_edges, seed)
+
     def get_network_stats(self):
         return sypy.Stats(self.graph)
 
@@ -73,7 +80,7 @@ class Network:
         left_nodes = self.left_region.graph.nodes()
         right_nodes = self.right_region.graph.nodes()
 
-        if num_edges > len(left_nodes):
+        if num_edges > len(left_nodes) * len(right_nodes):
             raise Exception("Too many edges to stitch")
 
         stitch = []

@@ -56,15 +56,24 @@ if __name__ == "__main__":
     )
     social_network.random_pair_stitch(num_edges=10)
 
-    roc_benchmark = sypy.RocAnalysisBenchmark(
-        detector=sypy.SybilPredictDetector(social_network),
-        threshold="pivot",
+    multi_benchmark = sypy.MultipleDetectorsBenchmark(
+        detectors = [
+            sypy.SybilRankDetector,
+            sypy.SybilPredictDetector
+        ],
+        network=social_network,
+        thresholds=["pivot", "pivot"],
+        seed="SyPyIsCool!"
     )
-    roc_benchmark.run()
-    roc_benchmark.plot(file_name="roc_curve")
-    
-    auc = roc_benchmark.roc_curve["auc"]
-    print "Benchmark results: AUC={0:.2f}".format(auc)
+    multi_benchmark.run()
+    multi_benchmark.plot_curve(file_name="roc_curve")
+
+    edges_benchmark = sypy.AttackEdgesDetectorsBenchmark(
+        multi_benchmark=multi_benchmark,
+        values=[i*10 for i in range(1,401)]
+    )
+    edges_benchmark.run()
+    edges_benchmark.plot_curve(file_name="attack_edge_vs_auc")
 
     answer = raw_input("Visualize [y/n]: ")
     if answer == "y":
