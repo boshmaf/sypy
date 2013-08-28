@@ -79,3 +79,9 @@ SyPy is built on top of [NetworkX](http://networkx.lanl.gov/), and hence it can 
 SyPy started as a research project at the [University of British Columbia](http://www.ece.ubc.ca/) (UBC) by [Yazan Boshmaf](http://ece.ubc.ca/~boshmaf). Latere on, the following people contributed in one way or the other:
 
 * Tony Cheng (UBC) -- Region and network visualization.
+
+# Referencing SyPy
+
+If you used SyPy in your work and found it useful, please reference it as follows:
+
+Yazan Boshmaf, Konstantin Beznosov, Matei Ripeanu. "Graph-based Sybil detection is social and information systems". In Proceedings of the 2013 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM'13), Niagara Falls, Canada, August 25-28, 2013.
