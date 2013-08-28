@@ -80,8 +80,8 @@ SyPy started as a research project at the [University of British Columbia](http:
 
 * Tony Cheng (UBC) -- Region and network visualization.
 
-# Referencing SyPy
+# Reference
 
 If you used SyPy in your work and found it useful, please reference it as follows:
 
-> Yazan Boshmaf, Konstantin Beznosov, Matei Ripeanu. "_Graph-based Sybil detection is social and information systems_". In Proceedings of the 2013 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM'13), Niagara Falls, Canada, August 25-28, 2013.
+> Yazan Boshmaf, Konstantin Beznosov, Matei Ripeanu. *"Graph-based Sybil detection is social and information systems"*. In Proceedings of the 2013 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM'13), Niagara Falls, Canada, August 25-28, 2013.
