@@ -121,7 +121,7 @@ class CompositeDetectorsBenchmark:
         for benchmark in self.simple_benchmarks:
             benchmark.run()
 
-    def plot_curve(self, file_name=None, file_format="pdf", font_size=18)
+    def plot_curve(self, file_name=None, file_format="pdf", font_size=18):
         data = {}
         data["Random"] = {
             "x_data": [0, 1],
@@ -155,15 +155,13 @@ class MultipleDetectorsBenchmark:
     The order of the detectors in the list is important. There is a one-to-one
     mapping between the indexes across all list-typed arguments.
     """
-    def __init__(self, detectors, network, thresholds, values=None, seed=None,
-            kwargs=None):
+    def __init__(self, detectors, network, thresholds, values=None, kwargs=None):
         self.detectors = detectors
         self.network = network
-        self.seed = seed
         self.benchmarks = []
 
         self.kwargs = kwargs
-        if len(self.kwargs) != len(self.detectors):
+        if self.kwargs and len(self.kwargs) != len(self.detectors):
             raise Exception("Invalid number of kwargs")
 
         self.thresholds = thresholds
@@ -178,8 +176,7 @@ class MultipleDetectorsBenchmark:
         for index, detector_class in enumerate(self.detectors):
             detector = detector_class(
                 self.network,
-                seed=self.seed,
-                **self.kwargs[index]
+                **self.kwargs[index] if self.kwargs else {}
             )
             benchmark = SimpleDetectorBenchmark(
                 detector,
@@ -307,7 +304,7 @@ class AttackEdgesDetectorsBenchmark:
             left = len(self.multi_benchmark.network.left_region.graph.nodes())
             right = len(self.multi_benchmark.network.right_region.graph.nodes())
             max_edges = 2 * (left + right)
-            values = [1] + [ i*100 for i in range(1, (max_edges/100)+1) ]
+            self.values = [1] + [ i*100 for i in range(1, (max_edges/100)+1) ]
 
         self.curves = {}
         for detector in self.multi_benchmark.detectors:
@@ -319,10 +316,7 @@ class AttackEdgesDetectorsBenchmark:
 
     def run(self):
         for value in sorted(self.values):
-            self.multi_benchmark.network.reset(
-                num_edges=value,
-                seed=self.multi_benchmark.seed
-            )
+            self.multi_benchmark.network.reset(num_edges=value)
             self.multi_benchmark.run()
             for benchmark in self.multi_benchmark.benchmarks:
                 name = benchmark.detector.__class__.__name__
@@ -350,13 +344,9 @@ class AttackEdgesDetectorsBenchmark:
             file_name,
             file_format
         )
-
         plotter._plot(
             x_label="Number of attack edges",
             y_label="Area under ROC curve",
             x_lim=[min(self.values) - 1, max(self.values) + 1],
             legend_loc="lower right"
         )
-
-
-

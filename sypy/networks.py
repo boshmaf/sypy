@@ -23,24 +23,28 @@ import sypy
 
 class Network:
 
-    def __init__(self, left_region, right_region, name):
+    def __init__(self, left_region, right_region, name, seed=None):
         self.left_region = left_region
         self.right_region = right_region
         self.__check_integrity()
 
         self.name = name
+        self.seed = seed
+        if self.seed:
+            random.seed(self.seed)
+
         self.graph = self.__setup_network_graph()
 
         self.known_honests = []
         self.is_stitched = False
         self.attack_edges = []
 
-    def reset(self, num_edges, seed=None):
+    def reset(self, num_edges):
         self.graph = self.__setup_network_graph()
         self.known_honests = []
         self.is_stitched = False
         self.attack_edges = []
-        self.random_pair_stitch(num_edges, seed)
+        self.random_pair_stitch(num_edges)
 
     def get_network_stats(self):
         return sypy.Stats(self.graph)
@@ -73,10 +77,7 @@ class Network:
 
         return sypy.CustomGraph(structure)
 
-    def random_pair_stitch(self, num_edges, seed=None):
-        if seed:
-            random.seed(seed)
-
+    def random_pair_stitch(self, num_edges):
         left_nodes = self.left_region.graph.nodes()
         right_nodes = self.right_region.graph.nodes()
 

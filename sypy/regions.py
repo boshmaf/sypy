@@ -27,7 +27,11 @@ class Region:
         self.graph = graph
         self.name = name
         self.is_sybil = is_sybil
+
         self.seed = seed
+        if self.seed:
+            random.seed(self.seed)
+
         self.known_honests = None
 
     def get_region_stats(self):
@@ -71,9 +75,6 @@ class Region:
 
         if num_nodes < 1:
             raise Exception("Too few honest nodes to pick")
-
-        if self.seed:
-            random.seed(self.seed)
 
     def visualize(self, file_name=None, file_format="pdf"):
         layout = nx.spring_layout(self.graph.structure)

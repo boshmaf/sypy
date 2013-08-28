@@ -22,6 +22,7 @@ sys.path.append("../")
 
 import sypy
 
+GLOBAL_SEED="SyPyIsCool!"
 
 if __name__ == "__main__":
 
@@ -29,7 +30,8 @@ if __name__ == "__main__":
         graph = sypy.PowerLawGraph(
             num_nodes=1000,
             node_degree=4,
-            prob_triad=0.75
+            prob_triad=0.75,
+            seed=GLOBAL_SEED
         ),
         name = "SybilCompleteGraph",
         is_sybil=True
@@ -41,9 +43,11 @@ if __name__ == "__main__":
         graph=sypy.PowerLawGraph(
             num_nodes=1000,
             node_degree=4,
-            prob_triad=0.75
+            prob_triad=0.75,
+            seed=GLOBAL_SEED
         ),
-        name="HonestPowerLawGraph"
+        name="HonestPowerLawGraph",
+        seed=GLOBAL_SEED
     )
     honest_region.pick_random_honest_nodes(num_nodes=10)
     honest_stats = honest_region.get_region_stats()
@@ -52,7 +56,8 @@ if __name__ == "__main__":
     social_network = sypy.Network(
         left_region=honest_region,
         right_region=sybil_region,
-        name="OnlineSocialNetwork"
+        name="OnlineSocialNetwork",
+        seed=GLOBAL_SEED
     )
     social_network.random_pair_stitch(num_edges=10)
 
@@ -62,13 +67,26 @@ if __name__ == "__main__":
             sypy.SybilPredictDetector
         ],
         network=social_network,
-        thresholds=["pivot", "pivot"]
+        thresholds=["pivot", "pivot"],
+        kwargs=[
+            {
+                "total_trust": social_network.graph.order(),
+                "num_iterations_scaler": 10.0,
+                "seed": GLOBAL_SEED
+            },
+            {
+                "total_trust": social_network.graph.order(),
+                "num_iterations_scaler": 10.0,
+                "operation_mode": "best",
+                "seed": GLOBAL_SEED
+            }
+        ]
     )
     multi_benchmark.run()
     multi_benchmark.plot_curve(file_name="roc_curve")
 
     edges_benchmark = sypy.AttackEdgesDetectorsBenchmark(
-        multi_benchmark=multi_benchmark
+        multi_benchmark=multi_benchmark,
     )
     edges_benchmark.run()
     edges_benchmark.plot_curve(file_name="attack_edge_vs_auc")

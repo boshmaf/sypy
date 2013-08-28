@@ -309,9 +309,7 @@ class SybilRankDetector(BaseSybilDetector):
         updated_trust = {}
         for node, trust in network_trust.iteritems():
             new_trust = 0.0
-            neighbors = list(
-                set(self.network.graph.structure.neighbors(node)) - set([node])
-            )
+            neighbors = self.network.graph.structure.neighbors(node)
 
             for neighbor in neighbors:
                 neighbor_degree = self.network.graph.structure.degree(neighbor)
@@ -345,20 +343,39 @@ class SybilPredictDetector(BaseSybilDetector):
     on every community, which is similar to SybilRank.
     """
     def __init__(self, network, total_trust=1.0, verifiers=None, pivot=0.1,
-            seed=None, num_iterations_scaler=1.0, potentials=None, reset_net=True):
+            seed=None, num_iterations_scaler=1.0, potentials=None,
+            operation_mode="normal"):
         BaseSybilDetector.__init__(self, network, verifiers, seed)
         self.total_trust = total_trust
         self.pivot = pivot
         self.num_iterations_scaler = num_iterations_scaler
         self.potentials = potentials
-        self.reset_network = reset_net
-        self.__setup_network()
+        self.operation_mode = operation_mode
 
     def __setup_network(self):
         if not self.potentials:
             self.potentials = dict(
                 (node, 0.0) for node in self.network.graph.nodes()
             )
+
+        if self.operation_mode == "normal":
+                pass
+        elif self.operation_mode == "best":
+            for victim, _ in self.network.attack_edges:
+                self.potentials[victim] = 0.99
+        elif self.operation_mode == "worst":
+            victims = []
+            for victim, _ in self.network.attack_edges:
+                victims.append(victim)
+            others = set(self.network.graph.nodes()) - set(victims)
+            for node in others:
+                self.potentials[node] = 0.99
+        elif self.operation_mode == "random":
+            for node in self.network.graph.nodes():
+                rand_potential = random.uniform(0.01, 1.0)
+                self.potentials[node] = rand_potential
+        else:
+            raise Exception("Invalid operation mode")
 
         for node in self.network.graph.nodes():
             neighbors = self.network.graph.structure.neighbors(node)
@@ -384,6 +401,8 @@ class SybilPredictDetector(BaseSybilDetector):
                 self.network.graph.structure.remove_edge(node, node)
 
     def detect(self):
+        self.__setup_network()
+
         num_iterations = math.log10(
             self.network.graph.order()
         ) * self.num_iterations_scaler
@@ -403,9 +422,7 @@ class SybilPredictDetector(BaseSybilDetector):
         ]
         self._vote_honests_predicted([verified_honests])
 
-        if self.reset_network:
-            self.__reset_network()
-
+        self.__reset_network()
         return sypy.Results(self)
 
     def __initialize_network_trust(self):
@@ -422,13 +439,18 @@ class SybilPredictDetector(BaseSybilDetector):
         updated_trust = {}
         for node, trust in network_trust.iteritems():
             new_trust = 0.0
-            neighbors = list(
-                set(self.network.graph.structure.neighbors(node)) - set([node])
-            )
+            neighbors = self.network.graph.structure.neighbors(node)
 
             for neighbor in neighbors:
-                neighbor_weight = self.network.graph.structure.degree(neighbor, weight="weight")
-                new_trust += network_trust[neighbor] / (float)(neighbor_weight)
+                neighbor_weight = self.network.graph.structure.degree(
+                    neighbor,
+                    weight="weight"
+                )
+                edge_weight = self.network.graph.structure[node][neighbor]["weight"]
+                if node == neighbor:
+                    edge_weight *= 2.0
+                new_trust += network_trust[neighbor] *\
+                    ( edge_weight / float(neighbor_weight) )
 
             updated_trust[node] = new_trust
 
