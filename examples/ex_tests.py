@@ -28,9 +28,9 @@ if __name__ == "__main__":
 
     sybil_region = sypy.Region(
         graph = sypy.PowerLawGraph(
-            num_nodes=1000,
+            num_nodes=5000,
             node_degree=4,
-            prob_triad=0.75,
+            prob_triad=0.5,
             seed=GLOBAL_SEED
         ),
         name = "SybilCompleteGraph",
@@ -41,15 +41,28 @@ if __name__ == "__main__":
 
     honest_region = sypy.Region(
         graph=sypy.PowerLawGraph(
-            num_nodes=1000,
+            num_nodes=10000,
             node_degree=4,
-            prob_triad=0.75,
+            prob_triad=0.5,
             seed=GLOBAL_SEED
         ),
         name="HonestPowerLawGraph",
         seed=GLOBAL_SEED
     )
-    honest_region.pick_random_honest_nodes(num_nodes=10)
+
+    max_degree = 0
+    max_node = 0
+    for node in honest_region.graph.nodes():
+        degree = honest_region.graph.structure.degree(node)
+        if degree > max_degree:
+            max_degree = degree
+            max_node = node
+
+    honest_region.pick_random_honest_nodes(num_nodes=49)
+    if max_node in honest_region.known_honests:
+        raise Exception("Max degree node already exists")
+    honest_region.known_honests += [max_node]
+
     honest_stats = honest_region.get_region_stats()
     assert honest_stats.is_connected == True
 
@@ -59,7 +72,6 @@ if __name__ == "__main__":
         name="OnlineSocialNetwork",
         seed=GLOBAL_SEED
     )
-    social_network.random_pair_stitch(num_edges=10)
 
     multi_benchmark = sypy.MultipleDetectorsBenchmark(
         detectors = [
@@ -71,22 +83,21 @@ if __name__ == "__main__":
         kwargs=[
             {
                 "total_trust": social_network.graph.order(),
-                "num_iterations_scaler": 10.0,
+                "num_iterations_scaler": 1.0,
                 "seed": GLOBAL_SEED
             },
             {
                 "total_trust": social_network.graph.order(),
-                "num_iterations_scaler": 10.0,
+                "num_iterations_scaler": 1.0,
                 "operation_mode": "best",
                 "seed": GLOBAL_SEED
             }
         ]
     )
-    multi_benchmark.run()
-    multi_benchmark.plot_curve(file_name="roc_curve")
 
     edges_benchmark = sypy.AttackEdgesDetectorsBenchmark(
         multi_benchmark=multi_benchmark,
+        values=[1] + [i*100 for i in range(1,21)]
     )
     edges_benchmark.run()
     edges_benchmark.plot_curve(file_name="attack_edge_vs_auc")

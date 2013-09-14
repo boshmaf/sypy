@@ -289,7 +289,7 @@ class SybilRankDetector(BaseSybilDetector):
 
         pivot_mark = (int)(self.pivot * len(ranked_trust))
         verified_honests = [
-            honest_node for honest_node, trust in ranked_trust[pivot_mark+1:]
+            honest_node for honest_node, trust in ranked_trust[pivot_mark:]
         ]
         self._vote_honests_predicted([verified_honests])
 
@@ -386,19 +386,12 @@ class SybilPredictDetector(BaseSybilDetector):
                 else:
                     self.network.graph.structure[node][neighbor]["weight"] =\
                         (1.0 - self.potentials[node])
-        # degree will count selfloop weight twice, hence we divide by 2.0
-        for node in self.network.graph.nodes():
-            node_weight = self.network.graph.structure.degree(node, weight="weight")
-            selfloop_weight = node_weight / 2.0
-            self.network.graph.structure.add_edge(node, node, weight=selfloop_weight)
 
     def __reset_network(self):
         for node in self.network.graph.nodes():
             neighbors = self.network.graph.structure.neighbors(node)
             for neighbor in neighbors:
                 self.network.graph.structure[node][neighbor] = {}
-            if self.network.graph.structure.has_edge(node, node):
-                self.network.graph.structure.remove_edge(node, node)
 
     def detect(self):
         self.__setup_network()
@@ -418,7 +411,7 @@ class SybilPredictDetector(BaseSybilDetector):
 
         pivot_mark = (int)(self.pivot * len(ranked_trust))
         verified_honests = [
-            honest_node for honest_node, trust in ranked_trust[pivot_mark+1:]
+            honest_node for honest_node, trust in ranked_trust[pivot_mark:]
         ]
         self._vote_honests_predicted([verified_honests])
 
@@ -447,8 +440,6 @@ class SybilPredictDetector(BaseSybilDetector):
                     weight="weight"
                 )
                 edge_weight = self.network.graph.structure[node][neighbor]["weight"]
-                if node == neighbor:
-                    edge_weight *= 2.0
                 new_trust += network_trust[neighbor] *\
                     ( edge_weight / float(neighbor_weight) )
 
