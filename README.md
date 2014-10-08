@@ -1,6 +1,6 @@
 # What is SyPy?
 
-SyPy is an easy-to-use Python package for [Sybil node](http://dl.acm.org/citation.cfm?id=687813) detection in social and information networks. Such networks are modelled as [graphs](http://en.wikipedia.org/wiki/Graph_(mathematics\)), where a node represents an entity and an edge between two nodes represents a connection. For example, in online social networks such as Facebook, nodes represent users and edges represent social relationships like friendships.
+SyPy is an easy-to-use Python package for [Sybil node](http://dl.acm.org/citation.cfm?id=687813) detection in social and information networks. Such networks are modelled as [graphs](http://en.wikipedia.org/wiki/Graph_(mathematics)), where a node represents an entity and an edge between two nodes represents a connection. For example, in online social networks such as Facebook, nodes represent users and edges represent social relationships like friendships.
 
 In the Sybil attack, an adversary controls a set of nodes in the network and uses them for adversarial objectives. For example, [socialbots](http://lersse-dl.ece.ubc.ca/record/277) in online social networks are automation tools that control hijacked or adversary-owned user accounts, which are adversely used to infiltrate these networks, steal user data, spread misinformation, or distribute malware.
 
