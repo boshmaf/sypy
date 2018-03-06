@@ -24,7 +24,7 @@ mkdir .virtualenv
 virtualenv ./virtualenv/sypy
 source .virtualenv/sypy/bin/activate
 cd sypy
-pip install -r requirements
+pip install -r requirements.txt
 cd examples/
 python ex_overview.py
 ```
