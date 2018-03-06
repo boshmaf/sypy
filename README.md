@@ -14,15 +14,15 @@ Given that all of the assumptions above hold, most of the well-known detection a
 
 # Installation
 
-SyPy relies on Python 2.7 and Networkx 1.6. To make sure you have the right version, its better to use Python [virtualenv](https://virtualenv.pypa.io/en/stable).
+SyPy relies on Python 2.7 and Networkx 1.6. To make sure you have the right version, it's better to use Python [virtualenv](https://virtualenv.pypa.io/en/stable).
 
 ```
 cd ~/
 git clone https://github.com/boshmaf/sypy.git
 sudo pip install virtualenv
-mkdir ~/virtualenv
-virtualenv ~/ virtualenv /sypy
-source ~/ virtualenv /sypy/bin/activate
+mkdir .virtualenv
+virtualenv ./virtualenv/sypy
+source .virtualenv/sypy/bin/activate
 cd sypy
 pip install -r requirements
 cd examples/
