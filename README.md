@@ -12,6 +12,23 @@ SyPy specializes in evaluating the [effectiveness](http://en.wikipedia.org/wiki/
 
 Given that all of the assumptions above hold, most of the well-known detection algorithms try in one way or the other to cut the network into two [partitions](http://en.wikipedia.org/wiki/Graph_partition) such that the cut size is small or sparse. After that, the partition to which the known honest node belongs is declared as the honest region (and the other as Sybil).
 
+# Installation
+
+SyPy relies on Python 2.7 and Networkx 1.6. To make sure you have the right version, its better to use Python [virtualenv](https://virtualenv.pypa.io/en/stable).
+
+```
+cd ~/
+git clone https://github.com/boshmaf/sypy.git
+sudo pip install virtualenv
+mkdir ~/virtualenv
+virtualenv ~/ virtualenv /sypy
+source ~/ virtualenv /sypy/bin/activate
+cd sypy
+pip install -r requirements
+cd examples/
+python ex_overview.py
+```
+
 # How does it work?
 
 SyPy provides a simple framework to design, implement, and evaluate graph-based Sybil detection algorithms. Overall, there are four main abstractions: graphs, regions, networks, and detection algorithms.

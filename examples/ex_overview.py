@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     sybil_region = sypy.Region(
         graph = sypy.PowerLawGraph(
-            num_nodes=1000,
+            num_nodes=10,
             node_degree=4,
             prob_triad=0.75
         ),
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     honest_region = sypy.Region(
         graph=sypy.PowerLawGraph(
-            num_nodes=1000,
+            num_nodes=100,
             node_degree=4,
             prob_triad=0.75
         ),
